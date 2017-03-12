@@ -11,3 +11,4 @@ Show some effects with an Arduino and a LED strip
 - Grundverdrahtung (Quelle nennen! http://www.instructables.com/id/Music-Sync-Flashing-LEDs-Arduino-MSGEQ7/ )
 - Bild Verdrahtung 2 Chips ![wiring](https://github.com/calliconfused/LED_MSGEQ7_visualize/blob/master/pictures/2MSGEQ7_overview.png)
 - YouTube Video hinzufügen
+- Arduino Library FastLED
