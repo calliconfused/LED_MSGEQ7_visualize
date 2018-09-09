@@ -22,13 +22,18 @@
 
 #define dNumberLedStrips        2
 
-#define dNumberLedsStripA       30
-#define dDataPinStripA          23
+#define dNumberLedsStrip1       50
+#define dDataPinStrip1          23
 
-#define dNumberLedsStripB       20
-#define dDataPinStripB          25
+#define dNumberLedsStrip2       50
+#define dDataPinStrip2          25
 
-#define dNumberLedsTotal dNumberLedsStripA + dNumberLedsStripB
+
+#define dStartNumberLedStrip1   0
+#define dStartNumberLedStrip2   dStartNumberLedStrip1 + dNumberLedsStrip2
+
+
+#define dNumberLedsTotal dNumberLedsStrip1 + dNumberLedsStrip2
 
 #define SPECTRUM_EQ7  6
 #define SPECTRUM_SEC  6
@@ -64,8 +69,9 @@ byte bDisplayBarLength;
  * MSGEQ7
  */
 
-byte bSpectrumValueL[7];
-byte bSpectrumValueR[7];
+byte bSpectrumAmount = 6;
+byte bSpectrumValueL[6];
+byte bSpectrumValueR[6];
 
 
 /*
@@ -74,12 +80,12 @@ byte bSpectrumValueR[7];
 
 #include <FastLED.h>
 
-CRGB leds[dNumberLedsStripA + dNumberLedsStripB];
+CRGB leds[dNumberLedsStrip1 + dNumberLedsStrip2];
 
 byte LED_LS[SPECTRUM_SEC];
 byte LED_LE[SPECTRUM_SEC];
 byte LED_SECTION[SPECTRUM_SEC];
-uint8_t HUE_VAL = 0;
+uint8_t iHueValue = 0;
 
 
 void setup()
@@ -88,8 +94,8 @@ void setup()
   Serial.begin(9600);
   u8g2.begin();
   
-  FastLED.addLeds<dTypeStrip, dDataPinStripA, dColorRange>(leds, 0, dNumberLedsStripA);
-  FastLED.addLeds<dTypeStrip, dDataPinStripB, dColorRange>(leds, dNumberLedsStripA, dNumberLedsStripB);
+  FastLED.addLeds<dTypeStrip, dDataPinStrip1, dColorRange>(leds, dStartNumberLedStrip1, dNumberLedsStrip1);
+  FastLED.addLeds<dTypeStrip, dDataPinStrip2, dColorRange>(leds, dStartNumberLedStrip2, dNumberLedsStrip2);
   FastLED.setBrightness(dBrightness);
   FastLED.clear();
 
@@ -121,8 +127,8 @@ void loop()
   digitalWrite(dResetPin, HIGH);
   digitalWrite(dResetPin, LOW);
  
-  // Get all 7 spectrum values from the MSGEQ7
-  for (int i = 0; i < 7; i++)
+  // Get just 6 spectrum values from the MSGEQ7 because 16 kHz isn't so much higher
+  for (int i = 0; i < bSpectrumAmount; i++)
   {
     digitalWrite(dStrobePin, LOW);
     delayMicroseconds(30); // Allow output to settle
@@ -139,20 +145,25 @@ void loop()
 
   FastLED.clear();
 
-  for (int i = 0; i < dNumberLedsTotal; i++) {
-    leds[i] = CHSV(HUE_VAL, 255, 192);
-  }
+  vShowLedBar(map(max(bSpectrumValueL[1], bSpectrumValueR[1]), 0, 255, 0, dNumberLedsStrip1), dStartNumberLedStrip1, iHueValue);
+  vShowLedBar(map(max(bSpectrumValueL[2], bSpectrumValueR[2]), 0, 255, 0, dNumberLedsStrip2), dStartNumberLedStrip2, iHueValue);
   
-  FastLED.show();   
-  
-  HUE_VAL++;
+  iHueValue++;
 
-  if (HUE_VAL==256) {
-    HUE_VAL = 0;
+  if (iHueValue==256) {
+    iHueValue = 0;
   }
 
   FastLED.show();
 
+}
+
+void vShowLedBar(byte bVolVal, int iLedStart, int iHueValue) {
+
+  for (int i = iLedStart; i < bVolVal; i++) {
+    leds[i] = CHSV(iHueValue, 255, 192);
+  }
+  
 }
 
 void vShowOnDisplay(byte bVolValL0, byte bVolValR0, byte bVolValL1, byte bVolValR1, 
