@@ -16,22 +16,16 @@
 #define dTypeStrip              WS2812
 #define dBrightness             50 
 
-#define NUM_LEDS                50  //
-#define DATA_PIN_L      23
-#define SECTION_LEN   (NUM_LEDS / SPECTRUM_SEC)
-
 #define dNumberLedStrips        2
 
-#define dNumberLedsStrip1       50
-#define dDataPinStrip1          23
+#define dNumberLedsStrip1       20
+#define dDataPinStrip1          25
 
-#define dNumberLedsStrip2       50
-#define dDataPinStrip2          25
-
+#define dNumberLedsStrip2       20
+#define dDataPinStrip2          29
 
 #define dStartNumberLedStrip1   0
-#define dStartNumberLedStrip2   dStartNumberLedStrip1 + dNumberLedsStrip2
-
+#define dStartNumberLedStrip2   dStartNumberLedStrip1 + dNumberLedsStrip1
 
 #define dNumberLedsTotal dNumberLedsStrip1 + dNumberLedsStrip2
 
@@ -49,7 +43,7 @@
 /* 
  * u8g2
  */
- 
+
 #include <Arduino.h>
 #include <U8g2lib.h>
 
@@ -59,9 +53,7 @@
 #ifdef U8X8_HAVE_HW_I2C
 #include <Wire.h>
 #endif
-
 U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R0); 
-
 byte bDisplayBarXPosition;
 byte bDisplayBarLength;
 
@@ -73,25 +65,18 @@ byte bSpectrumAmount = 6;
 byte bSpectrumValueL[6];
 byte bSpectrumValueR[6];
 
-
 /*
  * FastLED
  */
 
 #include <FastLED.h>
-
-CRGB leds[dNumberLedsStrip1 + dNumberLedsStrip2];
-
-byte LED_LS[SPECTRUM_SEC];
-byte LED_LE[SPECTRUM_SEC];
-byte LED_SECTION[SPECTRUM_SEC];
+CRGB leds[dNumberLedsTotal];
 uint8_t iHueValue = 0;
-
 
 void setup()
 {
   Serial2.begin(115200);
-  Serial.begin(9600);
+  Serial.begin(115200);
   u8g2.begin();
   
   FastLED.addLeds<dTypeStrip, dDataPinStrip1, dColorRange>(leds, dStartNumberLedStrip1, dNumberLedsStrip1);
@@ -105,18 +90,11 @@ void setup()
 
   FastLED.show();    
   
-  // Read from MSGEQ7 OUT
   pinMode(dAnalogPinL, INPUT);
   pinMode(dAnalogPinR, INPUT);
-  
-  // Write to MSGEQ7 STROBE and RESET
   pinMode(dStrobePin, OUTPUT);
   pinMode(dResetPin, OUTPUT);
- 
-  // Set analogPin's reference voltage
   analogReference(DEFAULT); // 5V
- 
-  // Set startup values for pins
   digitalWrite(dResetPin, LOW);
   digitalWrite(dStrobePin, HIGH);
 }
@@ -136,8 +114,16 @@ void loop()
     bSpectrumValueL[i] = map(constrain(analogRead(dAnalogPinL), filterValue, 1023), filterValue, 1023, 0, 255);
     bSpectrumValueR[i] = map(constrain(analogRead(dAnalogPinR), filterValue, 1023), filterValue, 1023, 0, 255);
     
+    // just for debug mode    
+    Serial.print(bSpectrumValueL[i]);
+    Serial.print(" ");
+    Serial.print(bSpectrumValueR[i]);
+    Serial.print(" ");    
+    
     digitalWrite(dStrobePin, HIGH);
   }
+
+  Serial.println();
 
   vShowOnDisplay(bSpectrumValueL[0], bSpectrumValueR[0], bSpectrumValueL[1], bSpectrumValueR[1],
                  bSpectrumValueL[2], bSpectrumValueR[2], bSpectrumValueL[3], bSpectrumValueR[3], 
@@ -146,7 +132,7 @@ void loop()
   FastLED.clear();
 
   vShowLedBar(map(max(bSpectrumValueL[1], bSpectrumValueR[1]), 0, 255, 0, dNumberLedsStrip1), dStartNumberLedStrip1, iHueValue);
-  vShowLedBar(map(max(bSpectrumValueL[2], bSpectrumValueR[2]), 0, 255, 0, dNumberLedsStrip2), dStartNumberLedStrip2, iHueValue);
+  vShowLedBar(map(max(bSpectrumValueL[3], bSpectrumValueR[3]), 0, 255, 0, dNumberLedsStrip2), dStartNumberLedStrip2, iHueValue);
   
   iHueValue++;
 
@@ -160,7 +146,7 @@ void loop()
 
 void vShowLedBar(byte bVolVal, int iLedStart, int iHueValue) {
 
-  for (int i = iLedStart; i < bVolVal; i++) {
+  for (int i = iLedStart; i - iLedStart < bVolVal; i++) {
     leds[i] = CHSV(iHueValue, 255, 192);
   }
   
