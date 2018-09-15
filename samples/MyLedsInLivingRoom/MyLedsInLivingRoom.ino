@@ -8,7 +8,8 @@
 #define dAnalogPinR             1   // MSGEQ7 OUT
 #define dStrobePin              2   // MSGEQ7 STROBE
 #define dResetPin               4   // MSGEQ7 RESET
-#define filterValue             80
+#define MSGEQ7_INTERVAL         ReadsPerSecond(50)
+#define MSGEQ7_SMOOTH           75  // Range: 0-255
 
 // LED strip
 
@@ -61,9 +62,8 @@ byte bDisplayBarLength;
  * MSGEQ7
  */
 
-byte bSpectrumAmount = 6;
-byte bSpectrumValueL[6];
-byte bSpectrumValueR[6];
+#include "MSGEQ7.h"
+CMSGEQ7<MSGEQ7_SMOOTH, dResetPin, dStrobePin, dAnalogPinL, dAnalogPinR> MSGEQ7;
 
 /*
  * FastLED
@@ -73,8 +73,8 @@ byte bSpectrumValueR[6];
 CRGB leds[dNumberLedsTotal];
 uint8_t iHueValue = 0;
 
-void setup()
-{
+void setup() {
+  
   Serial2.begin(115200);
   Serial.begin(115200);
   u8g2.begin();
@@ -90,49 +90,50 @@ void setup()
 
   FastLED.show();    
   
-  pinMode(dAnalogPinL, INPUT);
-  pinMode(dAnalogPinR, INPUT);
-  pinMode(dStrobePin, OUTPUT);
-  pinMode(dResetPin, OUTPUT);
   analogReference(DEFAULT); // 5V
-  digitalWrite(dResetPin, LOW);
-  digitalWrite(dStrobePin, HIGH);
+  MSGEQ7.begin();
+
 }
  
-void loop()
-{
-  // Set reset pin low to enable strobe
-  digitalWrite(dResetPin, HIGH);
-  digitalWrite(dResetPin, LOW);
- 
-  // Get just 6 spectrum values from the MSGEQ7 because 16 kHz isn't so much higher
-  for (int i = 0; i < bSpectrumAmount; i++)
-  {
-    digitalWrite(dStrobePin, LOW);
-    delayMicroseconds(30); // Allow output to settle
- 
-    bSpectrumValueL[i] = map(constrain(analogRead(dAnalogPinL), filterValue, 1023), filterValue, 1023, 0, 255);
-    bSpectrumValueR[i] = map(constrain(analogRead(dAnalogPinR), filterValue, 1023), filterValue, 1023, 0, 255);
+void loop() {
+  
+  bool newReading = MSGEQ7.read(MSGEQ7_INTERVAL);
+
+  if (newReading) {
+
+    uint8_t bSpectrumValueL0 = MSGEQ7.get(MSGEQ7_0, 0);
+    uint8_t bSpectrumValueL1 = MSGEQ7.get(MSGEQ7_1, 0);
+    uint8_t bSpectrumValueL2 = MSGEQ7.get(MSGEQ7_2, 0);
+    uint8_t bSpectrumValueL3 = MSGEQ7.get(MSGEQ7_3, 0);
+    uint8_t bSpectrumValueL4 = MSGEQ7.get(MSGEQ7_4, 0);
+    uint8_t bSpectrumValueL5 = MSGEQ7.get(MSGEQ7_5, 0);
+
+    uint8_t bSpectrumValueR0 = MSGEQ7.get(MSGEQ7_0, 1);
+    uint8_t bSpectrumValueR1 = MSGEQ7.get(MSGEQ7_1, 1);
+    uint8_t bSpectrumValueR2 = MSGEQ7.get(MSGEQ7_2, 1);
+    uint8_t bSpectrumValueR3 = MSGEQ7.get(MSGEQ7_3, 1);
+    uint8_t bSpectrumValueR4 = MSGEQ7.get(MSGEQ7_4, 1);
+    uint8_t bSpectrumValueR5 = MSGEQ7.get(MSGEQ7_5, 1);
     
-    // just for debug mode    
-    Serial.print(bSpectrumValueL[i]);
-    Serial.print(" ");
-    Serial.print(bSpectrumValueR[i]);
-    Serial.print(" ");    
+    vShowOnDisplay(bSpectrumValueL0, bSpectrumValueR0, bSpectrumValueL1, bSpectrumValueR1,
+                   bSpectrumValueL2, bSpectrumValueR2, bSpectrumValueL3, bSpectrumValueR3, 
+                   bSpectrumValueL4, bSpectrumValueR4, bSpectrumValueL5, bSpectrumValueR5);
+
+    Serial.print("L");
+    Serial.print(MSGEQ7.getVolume(0));
+    Serial.print(" R");
+    Serial.println(MSGEQ7.getVolume(1));
     
-    digitalWrite(dStrobePin, HIGH);
   }
-
-  Serial.println();
-
-  vShowOnDisplay(bSpectrumValueL[0], bSpectrumValueR[0], bSpectrumValueL[1], bSpectrumValueR[1],
-                 bSpectrumValueL[2], bSpectrumValueR[2], bSpectrumValueL[3], bSpectrumValueR[3], 
-                 bSpectrumValueL[4], bSpectrumValueR[4], bSpectrumValueL[5], bSpectrumValueR[5]);
+  
+  //vShowOnDisplay(bSpectrumValueL[0], bSpectrumValueR[0], bSpectrumValueL[1], bSpectrumValueR[1],
+  //               bSpectrumValueL[2], bSpectrumValueR[2], bSpectrumValueL[3], bSpectrumValueR[3], 
+  //               bSpectrumValueL[4], bSpectrumValueR[4], bSpectrumValueL[5], bSpectrumValueR[5]);
 
   FastLED.clear();
 
-  vShowLedBar(map(max(bSpectrumValueL[1], bSpectrumValueR[1]), 0, 255, 0, dNumberLedsStrip1), dStartNumberLedStrip1, iHueValue);
-  vShowLedBar(map(max(bSpectrumValueL[3], bSpectrumValueR[3]), 0, 255, 0, dNumberLedsStrip2), dStartNumberLedStrip2, iHueValue);
+  //vShowLedBar(map(max(bSpectrumValueL[1], bSpectrumValueR[1]), 0, 255, 0, dNumberLedsStrip1), dStartNumberLedStrip1, iHueValue);
+  //vShowLedBar(map(max(bSpectrumValueL[3], bSpectrumValueR[3]), 0, 255, 0, dNumberLedsStrip2), dStartNumberLedStrip2, iHueValue);
   
   iHueValue++;
 
