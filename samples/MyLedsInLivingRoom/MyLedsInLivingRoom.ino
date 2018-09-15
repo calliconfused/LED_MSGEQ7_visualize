@@ -9,27 +9,27 @@
 #define dStrobePin              2   // MSGEQ7 STROBE
 #define dResetPin               4   // MSGEQ7 RESET
 #define MSGEQ7_INTERVAL         ReadsPerSecond(50)
-#define MSGEQ7_SMOOTH           75  // Range: 0-255
-#define MSGEQ7_STARTVOL         30  // to adjust when the script will start to work
+#define MSGEQ7_SMOOTH           50  // Range: 0-255
+#define MSGEQ7_STARTVOL         40  // to adjust when the script will start to work
 
 // LED strip
 
 #define dColorRange             RBG
 #define dTypeStrip              WS2812
-#define dBrightness             50 
+#define dBrightness             80 
 
-#define dNumberLedStrips        2
-
-#define dNumberLedsStrip1       20
+#define dNumberLedsStrip1       100
 #define dDataPinStrip1          25
-
-#define dNumberLedsStrip2       20
+#define dNumberLedsStrip2       100
 #define dDataPinStrip2          29
+#define dNumberLedsStrip3       100
+#define dDataPinStrip3          37
 
 #define dStartNumberLedStrip1   0
 #define dStartNumberLedStrip2   dStartNumberLedStrip1 + dNumberLedsStrip1
+#define dStartNumberLedStrip3   dStartNumberLedStrip2 + dNumberLedsStrip2
 
-#define dNumberLedsTotal dNumberLedsStrip1 + dNumberLedsStrip2
+#define dNumberLedsTotal dNumberLedsStrip1 + dNumberLedsStrip2 + dNumberLedsStrip3
 
 #define SPECTRUM_EQ7  6
 #define SPECTRUM_SEC  6
@@ -76,6 +76,7 @@ uint8_t bSpectrumValueR[6];
 #include <FastLED.h>
 CRGB leds[dNumberLedsTotal];
 uint8_t iHueValue = 0;
+int iPoint = 0;
 
 void setup() {
   
@@ -85,6 +86,8 @@ void setup() {
   
   FastLED.addLeds<dTypeStrip, dDataPinStrip1, dColorRange>(leds, dStartNumberLedStrip1, dNumberLedsStrip1);
   FastLED.addLeds<dTypeStrip, dDataPinStrip2, dColorRange>(leds, dStartNumberLedStrip2, dNumberLedsStrip2);
+  FastLED.addLeds<dTypeStrip, dDataPinStrip3, dColorRange>(leds, dStartNumberLedStrip3, dNumberLedsStrip3);
+  
   FastLED.setBrightness(dBrightness);
   FastLED.clear();
 
@@ -154,31 +157,26 @@ void loop() {
   vShowOnDisplay(bSpectrumValueL[0], bSpectrumValueR[0], bSpectrumValueL[1], bSpectrumValueR[1],
                  bSpectrumValueL[2], bSpectrumValueR[2], bSpectrumValueL[3], bSpectrumValueR[3], 
                  bSpectrumValueL[4], bSpectrumValueR[4], bSpectrumValueL[5], bSpectrumValueR[5]);
-
-  Serial.print("L");
-  Serial.print(MSGEQ7.getVolume(0));
-  Serial.print(" R");
-  Serial.println(MSGEQ7.getVolume(1));
  
-  
   FastLED.clear();
 
-  //vShowLedBar(map(max(bSpectrumValueL[1], bSpectrumValueR[1]), 0, 255, 0, dNumberLedsStrip1), dStartNumberLedStrip1, iHueValue);
-  //vShowLedBar(map(max(bSpectrumValueL[3], bSpectrumValueR[3]), 0, 255, 0, dNumberLedsStrip2), dStartNumberLedStrip2, iHueValue);
-  
-  iHueValue++;
+  vShowLedBar(map(max(bSpectrumValueL[0], bSpectrumValueR[0]), 0, 255, 0, dNumberLedsStrip1 / 2), dStartNumberLedStrip1, iHueValue);
+  vShowLedBar(map(max(bSpectrumValueL[1], bSpectrumValueR[1]), 0, 255, 0, dNumberLedsStrip1 / 2), dStartNumberLedStrip1 + dNumberLedsStrip1 / 2, iHueValue);
+  vShowLedBar(map(max(bSpectrumValueL[2], bSpectrumValueR[2]), 0, 255, 0, dNumberLedsStrip2 / 2), dStartNumberLedStrip2, iHueValue);
+  vShowLedBar(map(max(bSpectrumValueL[3], bSpectrumValueR[3]), 0, 255, 0, dNumberLedsStrip2 / 2), dStartNumberLedStrip2 + dNumberLedsStrip2 / 2, iHueValue);
+  vShowLedBar(map(max(bSpectrumValueL[4], bSpectrumValueR[4]), 0, 255, 0, dNumberLedsStrip3 / 2), dStartNumberLedStrip3, iHueValue);
+  vShowLedBar(map(max(bSpectrumValueL[5], bSpectrumValueR[5]), 0, 255, 0, dNumberLedsStrip3 / 2), dStartNumberLedStrip3 + dNumberLedsStrip3 / 2, iHueValue);
 
-  if (iHueValue==256) {
-    iHueValue = 0;
-  }
+  iHueValue++;
+  if (iHueValue == 256) { iHueValue = 0; }
 
   FastLED.show();
 
 }
 
-void vShowLedBar(byte bVolVal, int iLedStart, int iHueValue) {
+void vShowLedBar(int iLeds, int iLedStart, int iHueValue) {
 
-  for (int i = iLedStart; i - iLedStart < bVolVal; i++) {
+  for (int i = iLedStart; i - iLedStart < iLeds; i++) {
     leds[i] = CHSV(iHueValue, 255, 192);
   }
   
