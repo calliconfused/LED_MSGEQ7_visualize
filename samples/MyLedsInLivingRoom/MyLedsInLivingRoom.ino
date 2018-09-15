@@ -10,6 +10,7 @@
 #define dResetPin               4   // MSGEQ7 RESET
 #define MSGEQ7_INTERVAL         ReadsPerSecond(50)
 #define MSGEQ7_SMOOTH           75  // Range: 0-255
+#define MSGEQ7_STARTVOL         30  // to adjust when the script will start to work
 
 // LED strip
 
@@ -65,6 +66,9 @@ byte bDisplayBarLength;
 #include "MSGEQ7.h"
 CMSGEQ7<MSGEQ7_SMOOTH, dResetPin, dStrobePin, dAnalogPinL, dAnalogPinR> MSGEQ7;
 
+uint8_t bSpectrumValueL[6];
+uint8_t bSpectrumValueR[6];
+
 /*
  * FastLED
  */
@@ -101,35 +105,62 @@ void loop() {
 
   if (newReading) {
 
-    uint8_t bSpectrumValueL0 = MSGEQ7.get(MSGEQ7_0, 0);
-    uint8_t bSpectrumValueL1 = MSGEQ7.get(MSGEQ7_1, 0);
-    uint8_t bSpectrumValueL2 = MSGEQ7.get(MSGEQ7_2, 0);
-    uint8_t bSpectrumValueL3 = MSGEQ7.get(MSGEQ7_3, 0);
-    uint8_t bSpectrumValueL4 = MSGEQ7.get(MSGEQ7_4, 0);
-    uint8_t bSpectrumValueL5 = MSGEQ7.get(MSGEQ7_5, 0);
+    if (MSGEQ7.getVolume(0) > MSGEQ7_STARTVOL) {
 
-    uint8_t bSpectrumValueR0 = MSGEQ7.get(MSGEQ7_0, 1);
-    uint8_t bSpectrumValueR1 = MSGEQ7.get(MSGEQ7_1, 1);
-    uint8_t bSpectrumValueR2 = MSGEQ7.get(MSGEQ7_2, 1);
-    uint8_t bSpectrumValueR3 = MSGEQ7.get(MSGEQ7_3, 1);
-    uint8_t bSpectrumValueR4 = MSGEQ7.get(MSGEQ7_4, 1);
-    uint8_t bSpectrumValueR5 = MSGEQ7.get(MSGEQ7_5, 1);
+      bSpectrumValueL[0] = MSGEQ7.get(MSGEQ7_0, 0);
+      bSpectrumValueL[1] = MSGEQ7.get(MSGEQ7_1, 0);
+      bSpectrumValueL[2] = MSGEQ7.get(MSGEQ7_2, 0);
+      bSpectrumValueL[3] = MSGEQ7.get(MSGEQ7_3, 0);
+      bSpectrumValueL[4] = MSGEQ7.get(MSGEQ7_4, 0);
+      bSpectrumValueL[5] = MSGEQ7.get(MSGEQ7_5, 0);
+      
+    }
     
-    vShowOnDisplay(bSpectrumValueL0, bSpectrumValueR0, bSpectrumValueL1, bSpectrumValueR1,
-                   bSpectrumValueL2, bSpectrumValueR2, bSpectrumValueL3, bSpectrumValueR3, 
-                   bSpectrumValueL4, bSpectrumValueR4, bSpectrumValueL5, bSpectrumValueR5);
+    else {
 
-    Serial.print("L");
-    Serial.print(MSGEQ7.getVolume(0));
-    Serial.print(" R");
-    Serial.println(MSGEQ7.getVolume(1));
+      if (bSpectrumValueL[0] > 0) { bSpectrumValueL[0] = bSpectrumValueL[0] - 1; }
+      if (bSpectrumValueL[1] > 0) { bSpectrumValueL[1] = bSpectrumValueL[1] - 1; }
+      if (bSpectrumValueL[2] > 0) { bSpectrumValueL[2] = bSpectrumValueL[2] - 1; }
+      if (bSpectrumValueL[3] > 0) { bSpectrumValueL[3] = bSpectrumValueL[3] - 1; }
+      if (bSpectrumValueL[4] > 0) { bSpectrumValueL[4] = bSpectrumValueL[4] - 1; }
+      if (bSpectrumValueL[5] > 0) { bSpectrumValueL[5] = bSpectrumValueL[5] - 1; }
+ 
+    }
     
-  }
+    if (MSGEQ7.getVolume(1) > MSGEQ7_STARTVOL) {
+    
+      bSpectrumValueR[0] = MSGEQ7.get(MSGEQ7_0, 1);
+      bSpectrumValueR[1] = MSGEQ7.get(MSGEQ7_1, 1);
+      bSpectrumValueR[2] = MSGEQ7.get(MSGEQ7_2, 1);
+      bSpectrumValueR[3] = MSGEQ7.get(MSGEQ7_3, 1);
+      bSpectrumValueR[4] = MSGEQ7.get(MSGEQ7_4, 1);
+      bSpectrumValueR[5] = MSGEQ7.get(MSGEQ7_5, 1);
+    
+    }
+
+    else {
+    
+      if (bSpectrumValueR[0] > 0) { bSpectrumValueR[0] = bSpectrumValueR[0] - 1; }
+      if (bSpectrumValueR[1] > 0) { bSpectrumValueR[1] = bSpectrumValueR[1] - 1; }
+      if (bSpectrumValueR[2] > 0) { bSpectrumValueR[2] = bSpectrumValueR[2] - 1; }
+      if (bSpectrumValueR[3] > 0) { bSpectrumValueR[3] = bSpectrumValueR[3] - 1; }
+      if (bSpectrumValueR[4] > 0) { bSpectrumValueR[4] = bSpectrumValueR[4] - 1; }
+      if (bSpectrumValueR[5] > 0) { bSpectrumValueR[5] = bSpectrumValueR[5] - 1; }
+    
+    }
   
-  //vShowOnDisplay(bSpectrumValueL[0], bSpectrumValueR[0], bSpectrumValueL[1], bSpectrumValueR[1],
-  //               bSpectrumValueL[2], bSpectrumValueR[2], bSpectrumValueL[3], bSpectrumValueR[3], 
-  //               bSpectrumValueL[4], bSpectrumValueR[4], bSpectrumValueL[5], bSpectrumValueR[5]);
+  }
 
+  vShowOnDisplay(bSpectrumValueL[0], bSpectrumValueR[0], bSpectrumValueL[1], bSpectrumValueR[1],
+                 bSpectrumValueL[2], bSpectrumValueR[2], bSpectrumValueL[3], bSpectrumValueR[3], 
+                 bSpectrumValueL[4], bSpectrumValueR[4], bSpectrumValueL[5], bSpectrumValueR[5]);
+
+  Serial.print("L");
+  Serial.print(MSGEQ7.getVolume(0));
+  Serial.print(" R");
+  Serial.println(MSGEQ7.getVolume(1));
+ 
+  
   FastLED.clear();
 
   //vShowLedBar(map(max(bSpectrumValueL[1], bSpectrumValueR[1]), 0, 255, 0, dNumberLedsStrip1), dStartNumberLedStrip1, iHueValue);
