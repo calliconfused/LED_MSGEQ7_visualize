@@ -31,9 +31,6 @@
 
 #define dNumberLedsTotal dNumberLedsStrip1 + dNumberLedsStrip2 + dNumberLedsStrip3
 
-#define SPECTRUM_EQ7  6
-#define SPECTRUM_SEC  6
-
 // display properties
 
 #define dDisplayBarYPosition    25  // vertical position of bars
@@ -160,12 +157,25 @@ void loop() {
  
   FastLED.clear();
 
-  vShowLedBar(map(max(bSpectrumValueL[0], bSpectrumValueR[0]), 0, 255, 0, dNumberLedsStrip1 / 2), dStartNumberLedStrip1, iHueValue);
-  vShowLedBar(map(max(bSpectrumValueL[1], bSpectrumValueR[1]), 0, 255, 0, dNumberLedsStrip1 / 2), dStartNumberLedStrip1 + dNumberLedsStrip1 / 2, iHueValue);
-  vShowLedBar(map(max(bSpectrumValueL[2], bSpectrumValueR[2]), 0, 255, 0, dNumberLedsStrip2 / 2), dStartNumberLedStrip2, iHueValue);
-  vShowLedBar(map(max(bSpectrumValueL[3], bSpectrumValueR[3]), 0, 255, 0, dNumberLedsStrip2 / 2), dStartNumberLedStrip2 + dNumberLedsStrip2 / 2, iHueValue);
-  vShowLedBar(map(max(bSpectrumValueL[4], bSpectrumValueR[4]), 0, 255, 0, dNumberLedsStrip3 / 2), dStartNumberLedStrip3, iHueValue);
-  vShowLedBar(map(max(bSpectrumValueL[5], bSpectrumValueR[5]), 0, 255, 0, dNumberLedsStrip3 / 2), dStartNumberLedStrip3 + dNumberLedsStrip3 / 2, iHueValue);
+/*  
+ *  vShowLedBarSoludUV: check first which side has the maximum SpectrumValue then set the proportion between  
+ *  value from the spectrum each channel from lowest to highes byte to the amount of leds in one section
+ */
+ 
+  vShowLedBarSolidUV(max(bSpectrumValueL[0], bSpectrumValueR[0]), 
+                     dStartNumberLedStrip1 , dNumberLedsStrip1 / 2, iHueValue);
+  vShowLedBarSolidUV(max(bSpectrumValueL[1], bSpectrumValueR[1]), 
+                     dStartNumberLedStrip1 + dNumberLedsStrip1 / 2, dNumberLedsStrip1 / 2, iHueValue + 32);
+  vShowLedBarSolidUV(max(bSpectrumValueL[2], bSpectrumValueR[2]), 
+                     dStartNumberLedStrip2 , dNumberLedsStrip2 / 2, iHueValue + 64);
+  vShowLedBarSolidUV(max(bSpectrumValueL[3], bSpectrumValueR[3]), 
+                     dStartNumberLedStrip2 + dNumberLedsStrip2 / 2, dNumberLedsStrip2 / 2, iHueValue + 128);
+  vShowLedBarSolidUV(max(bSpectrumValueL[4], bSpectrumValueR[4]), 
+                     dStartNumberLedStrip3 , dNumberLedsStrip3 / 2, iHueValue + 162);
+  vShowLedBarSolidUV(max(bSpectrumValueL[5], bSpectrumValueR[5]), 
+                     dStartNumberLedStrip3 + dNumberLedsStrip3 / 2, dNumberLedsStrip3 / 2, iHueValue + 192);
+
+//  vShowLedBarGlowUV(bSpectrumValueL[4], 0, 25, iHueValue);
 
   iHueValue++;
   if (iHueValue == 256) { iHueValue = 0; }
@@ -174,17 +184,58 @@ void loop() {
 
 }
 
-void vShowLedBar(int iLeds, int iLedStart, int iHueValue) {
+void vShowLedBarSolidUV(byte bSpectrumValue, int iLedStart, int iLedCount, int iHueValue) {
+
+/*  
+ * this function will show a solid bar of the UV meter 
+ * just color and the amount of leds ... no more
+ */
+
+  int iLeds = map(bSpectrumValue, 0, 255, 0, iLedCount);
 
   for (int i = iLedStart; i - iLedStart < iLeds; i++) {
-    leds[i] = CHSV(iHueValue, 255, 192);
+    leds[i] = CHSV(iHueValue, 255, 255);
   }
   
+}
+
+void vShowLedBarGlowUV(byte bSpectrumValue, int iLedStart, int iLedCount, int iHueValue) {
+
+  byte bSpectrumBorder[] = {100, 160};
+  byte bHSVsat = 255;
+  byte bHSVval = 255;
+  int iLeds;  
+
+  if (bSpectrumValue < bSpectrumBorder[0]) {
+    
+    iLeds = map(bSpectrumValue, 0, 255, 0, iLedCount);
+    byte bHSVdiff = 255 / iLeds;
+    for (int i = iLedStart; i - iLedStart < iLedCount; i++) {
+      leds[i] = CHSV(iHueValue, bHSVsat, bHSVval);
+      if (bHSVval < 1) 
+        { bHSVval = 1; }
+      else 
+        { bHSVval = bHSVval - bHSVdiff; }
+    }
+     
+  } //else  {
+
+//    iLeds = map(bSpectrumValue, 0, bSpectrumBorder, 0, iLedCount);
+//    for (int i = iLedStart; i - iLedStart < iLeds; i++) {
+//      leds[i] = CHSV(iHueValue, bHSVsat, bHSVval);
+//    }
+//
+//  }
+
 }
 
 void vShowOnDisplay(byte bVolValL0, byte bVolValR0, byte bVolValL1, byte bVolValR1, 
                     byte bVolValL2, byte bVolValR2, byte bVolValL3, byte bVolValR3,
                     byte bVolValL4, byte bVolValR4, byte bVolValL5, byte bVolValR5) {
+
+/*                      
+ *  this function will show the spectrum on the display
+ */
 
   u8g2.setFont(u8g2_font_4x6_mf);
   u8g2.firstPage();
