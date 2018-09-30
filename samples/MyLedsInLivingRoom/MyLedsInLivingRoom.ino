@@ -18,11 +18,11 @@
 #define dTypeStrip              WS2812
 #define dBrightness             80 
 
-#define dNumberLedsStrip1       100
+#define dNumberLedsStrip1       40
 #define dDataPinStrip1          25
-#define dNumberLedsStrip2       100
+#define dNumberLedsStrip2       40
 #define dDataPinStrip2          29
-#define dNumberLedsStrip3       100
+#define dNumberLedsStrip3       40
 #define dDataPinStrip3          37
 
 #define dStartNumberLedStrip1   0
@@ -163,17 +163,17 @@ void loop() {
  */
  
   vShowLedBarSolidUV(max(bSpectrumValueL[0], bSpectrumValueR[0]), 
-                     dStartNumberLedStrip1 , dNumberLedsStrip1 / 2, iHueValue);
+                     dStartNumberLedStrip1 , dNumberLedsStrip1 / 2, iHueValue, false);
   vShowLedBarSolidUV(max(bSpectrumValueL[1], bSpectrumValueR[1]), 
-                     dStartNumberLedStrip1 + dNumberLedsStrip1 / 2, dNumberLedsStrip1 / 2, iHueValue + 32);
+                     dStartNumberLedStrip1 + dNumberLedsStrip1 / 2, dNumberLedsStrip1 / 2, iHueValue + 64, true);
   vShowLedBarSolidUV(max(bSpectrumValueL[2], bSpectrumValueR[2]), 
-                     dStartNumberLedStrip2 , dNumberLedsStrip2 / 2, iHueValue + 64);
+                     dStartNumberLedStrip2 , dNumberLedsStrip2 / 2, iHueValue + 20, true);
   vShowLedBarSolidUV(max(bSpectrumValueL[3], bSpectrumValueR[3]), 
-                     dStartNumberLedStrip2 + dNumberLedsStrip2 / 2, dNumberLedsStrip2 / 2, iHueValue + 128);
+                     dStartNumberLedStrip2 + dNumberLedsStrip2 / 2, dNumberLedsStrip2 / 2, iHueValue + 128, true);
   vShowLedBarSolidUV(max(bSpectrumValueL[4], bSpectrumValueR[4]), 
-                     dStartNumberLedStrip3 , dNumberLedsStrip3 / 2, iHueValue + 162);
+                     dStartNumberLedStrip3 , dNumberLedsStrip3 / 2, iHueValue + 32, true);
   vShowLedBarSolidUV(max(bSpectrumValueL[5], bSpectrumValueR[5]), 
-                     dStartNumberLedStrip3 + dNumberLedsStrip3 / 2, dNumberLedsStrip3 / 2, iHueValue + 192);
+                     dStartNumberLedStrip3 + dNumberLedsStrip3 / 2, dNumberLedsStrip3 / 2, iHueValue + 192, true);
 
 //  vShowLedBarGlowUV(bSpectrumValueL[4], 0, 25, iHueValue);
 
@@ -184,48 +184,31 @@ void loop() {
 
 }
 
-void vShowLedBarSolidUV(byte bSpectrumValue, int iLedStart, int iLedCount, int iHueValue) {
+void vShowLedBarSolidUV(byte bSpectrumValue, int iLedStart, int iLedCount, int iHueValue, bool bDirection) {
 
 /*  
  * this function will show a solid bar of the UV meter 
  * just color and the amount of leds ... no more
+ * bDirection means if the UV goes in positive direction e.g. 2 3 4 5 6 or negative direction e.g. 6 5 4 3 2
  */
 
   int iLeds = map(bSpectrumValue, 0, 255, 0, iLedCount);
 
-  for (int i = iLedStart; i - iLedStart < iLeds; i++) {
-    leds[i] = CHSV(iHueValue, 255, 255);
+  if (bDirection == true) {
+    for (int i = iLedStart; i - iLedStart < iLeds; i++) {
+      leds[i] = CHSV(iHueValue, 255, 255);
+    }
+  } else {
+    for (int i = iLedStart + iLedCount; (iLedStart + iLedCount) - i < iLeds; i--) {
+      leds[i] = CHSV(iHueValue, 255, 255);
+    }    
   }
   
 }
 
-void vShowLedBarGlowUV(byte bSpectrumValue, int iLedStart, int iLedCount, int iHueValue) {
+void vShowLedBarGlowUV(byte bSpectrumValue, int iLedStart, int iLedCount, int iHueValue, bool bDirection) {
 
-  byte bSpectrumBorder[] = {100, 160};
-  byte bHSVsat = 255;
-  byte bHSVval = 255;
-  int iLeds;  
 
-  if (bSpectrumValue < bSpectrumBorder[0]) {
-    
-    iLeds = map(bSpectrumValue, 0, 255, 0, iLedCount);
-    byte bHSVdiff = 255 / iLeds;
-    for (int i = iLedStart; i - iLedStart < iLedCount; i++) {
-      leds[i] = CHSV(iHueValue, bHSVsat, bHSVval);
-      if (bHSVval < 1) 
-        { bHSVval = 1; }
-      else 
-        { bHSVval = bHSVval - bHSVdiff; }
-    }
-     
-  } //else  {
-
-//    iLeds = map(bSpectrumValue, 0, bSpectrumBorder, 0, iLedCount);
-//    for (int i = iLedStart; i - iLedStart < iLeds; i++) {
-//      leds[i] = CHSV(iHueValue, bHSVsat, bHSVval);
-//    }
-//
-//  }
 
 }
 
