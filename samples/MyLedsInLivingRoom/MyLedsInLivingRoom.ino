@@ -206,12 +206,6 @@ void vShowLedBarSolidUV(byte bSpectrumValue, int iLedStart, int iLedCount, int i
   
 }
 
-void vShowLedBarGlowUV(byte bSpectrumValue, int iLedStart, int iLedCount, int iHueValue, bool bDirection) {
-
-
-
-}
-
 void vShowOnDisplay(byte bVolValL0, byte bVolValR0, byte bVolValL1, byte bVolValR1, 
                     byte bVolValL2, byte bVolValR2, byte bVolValL3, byte bVolValR3,
                     byte bVolValL4, byte bVolValR4, byte bVolValL5, byte bVolValR5) {
