@@ -18,24 +18,33 @@
 #define dTypeStrip              WS2812
 #define dBrightness             80 
 
-#define dNumberLedsStrip1       150
-#define dDataPinStrip1          25
-#define dNumberLedsStrip2       150
-#define dDataPinStrip2          29
-#define dNumberLedsStrip3       150
-#define dDataPinStrip3          33
-#define dNumberLedsStrip4       150
-#define dDataPinStrip4          37
-#define dNumberLedsStrip5       150
-#define dDataPinStrip6          41
+#define dNumberLedsStrip1       86
+#define dDataPinStrip1          23
+#define dNumberLedsStrip2       57
+#define dDataPinStrip2          25
+#define dNumberLedsStrip3       100
+#define dDataPinStrip3          27
+#define dNumberLedsStrip4       82
+#define dDataPinStrip4          29
+#define dNumberLedsStrip5       82
+#define dDataPinStrip5          31
+#define dNumberLedsStrip6       100
+#define dDataPinStrip6          33
+#define dNumberLedsStrip7       57
+#define dDataPinStrip7          35
+#define dNumberLedsStrip8       69
+#define dDataPinStrip8          37
 
 #define dStartNumberLedStrip1   0
 #define dStartNumberLedStrip2   dStartNumberLedStrip1 + dNumberLedsStrip1
 #define dStartNumberLedStrip3   dStartNumberLedStrip2 + dNumberLedsStrip2
 #define dStartNumberLedStrip4   dStartNumberLedStrip3 + dNumberLedsStrip3
 #define dStartNumberLedStrip5   dStartNumberLedStrip4 + dNumberLedsStrip4
+#define dStartNumberLedStrip6   dStartNumberLedStrip5 + dNumberLedsStrip5
+#define dStartNumberLedStrip7   dStartNumberLedStrip6 + dNumberLedsStrip6
+#define dStartNumberLedStrip8   dStartNumberLedStrip7 + dNumberLedsStrip7
 
-#define dNumberLedsTotal dNumberLedsStrip1 + dNumberLedsStrip2 + dNumberLedsStrip3 + dNumberLedsStrip4 + dNumberLedsStrip5
+#define dNumberLedsTotal dNumberLedsStrip1 + dNumberLedsStrip2 + dNumberLedsStrip3 + dNumberLedsStrip4 + dNumberLedsStrip5 + dNumberLedsStrip6 + dNumberLedsStrip7 + dNumberLedsStrip8
 
 // display properties
 
@@ -100,9 +109,12 @@ void setup() {
   FastLED.addLeds<dTypeStrip, dDataPinStrip1, dColorRange>(leds, dStartNumberLedStrip1, dNumberLedsStrip1);
   FastLED.addLeds<dTypeStrip, dDataPinStrip2, dColorRange>(leds, dStartNumberLedStrip2, dNumberLedsStrip2);
   FastLED.addLeds<dTypeStrip, dDataPinStrip3, dColorRange>(leds, dStartNumberLedStrip3, dNumberLedsStrip3);
-  FastLED.addLeds<dTypeStrip, dDataPinStrip3, dColorRange>(leds, dStartNumberLedStrip4, dNumberLedsStrip4);
-  FastLED.addLeds<dTypeStrip, dDataPinStrip3, dColorRange>(leds, dStartNumberLedStrip5, dNumberLedsStrip5);
-  
+  FastLED.addLeds<dTypeStrip, dDataPinStrip4, dColorRange>(leds, dStartNumberLedStrip4, dNumberLedsStrip4);
+  FastLED.addLeds<dTypeStrip, dDataPinStrip5, dColorRange>(leds, dStartNumberLedStrip5, dNumberLedsStrip5);
+  FastLED.addLeds<dTypeStrip, dDataPinStrip6, dColorRange>(leds, dStartNumberLedStrip6, dNumberLedsStrip6);
+  FastLED.addLeds<dTypeStrip, dDataPinStrip7, dColorRange>(leds, dStartNumberLedStrip7, dNumberLedsStrip7);
+  FastLED.addLeds<dTypeStrip, dDataPinStrip8, dColorRange>(leds, dStartNumberLedStrip8, dNumberLedsStrip8);
+        
   FastLED.setBrightness(dBrightness);
   FastLED.clear();
 
