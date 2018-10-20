@@ -18,22 +18,24 @@
 #define dTypeStrip              WS2812
 #define dBrightness             80 
 
+#define dDataPinStrip1          25
+#define dDataPinStrip2          29
+#define dDataPinStrip3          33
+#define dDataPinStrip4          37
+#define dDataPinStrip5          41
+#define dDataPinStrip6          45
+#define dDataPinStrip7          49
+#define dDataPinStrip8          53
+
 #define dNumberLedsStrip1       86
-#define dDataPinStrip1          23
 #define dNumberLedsStrip2       57
-#define dDataPinStrip2          25
 #define dNumberLedsStrip3       100
-#define dDataPinStrip3          27
 #define dNumberLedsStrip4       82
-#define dDataPinStrip4          29
 #define dNumberLedsStrip5       82
-#define dDataPinStrip5          31
 #define dNumberLedsStrip6       100
-#define dDataPinStrip6          33
 #define dNumberLedsStrip7       57
-#define dDataPinStrip7          35
 #define dNumberLedsStrip8       69
-#define dDataPinStrip8          37
+
 
 #define dStartNumberLedStrip1   0
 #define dStartNumberLedStrip2   dStartNumberLedStrip1 + dNumberLedsStrip1
