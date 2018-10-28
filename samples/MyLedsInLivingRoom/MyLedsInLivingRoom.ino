@@ -1,12 +1,12 @@
 /*
- * Calli Confuse - MyLedsInLivingRoom v0.1 - 2018
+ * Calli Confused - MyLedsInLivingRoom v0.1 - 2018
  * 
  * for more information about the complete project please visit: https://github.com/calliconfused/LED_MSGEQ7_visualize 
  * 
  * led arrangement in my living room
  * 
  *                               82 leds            82 leds
- *                         4------------------5------------------6
+ *                         D------------------E------------------F
  *                         |                                     |
  *                         | 8 leds                              | 8 leds
  *                        /                                       \
@@ -14,61 +14,63 @@
  *             92 leds  /                                           \ 92 leds
  *                     /                                             \
  *                    /                                               \
- *                   3                                                 7
+ *                   C                                                 G
  *                    \                                               /
  *                     \                                             /
  *             57 leds  \                                           / 57 leds
  *                       \                                         /
  *                        \                                       /
  *                         \                                     /
- *                          2------------------1 ::: -----------8† (interface point dead, combined with 7)
+ *                          B------------------A ::: -----------H† (interface point dead, combined with G)
  *                                 86 leds             69 leds
  * 
  */
 
 // LED strip
 
-#define dColorRange             RBG
+#define dColorOrder             RGB
 #define dTypeStrip              WS2812
 #define dBrightness             192
 
-#define dDataPinBar1            25  // cable yellow I
-#define dDataPinBar2            29  // cable green I
-#define dDataPinBar3            33  // cable orange I
-#define dDataPinBar4            37  // cable violet I
-#define dDataPinBar5            41  // cable green II
-#define dDataPinBar6            45  // cable yellow II
-#define dDataPinBar7            49  // cable violet II
-// cable orange II is damaged and is replaces together with data pin bar 7
+#define dDataPinBarA            25  // cable yellow I
+#define dDataPinBarB            29  // cable green I
+#define dDataPinBarC            33  // cable orange I
+#define dDataPinBarD            37  // cable violet I
+#define dDataPinBarE            41  // cable green II
+#define dDataPinBarF            45  // cable yellow II
+#define dDataPinBarG            49  // cable violet II
+// cable orange II is damaged and is replaces together with data pin bar G
 
-#define dNumberLedsStrip1       86
-#define dNumberLedsStrip2       57
-#define dNumberLedsStrip3       92
-#define dNumberLedsStrip4       8
-#define dNumberLedsStrip5       82
-#define dNumberLedsStrip6       82
-#define dNumberLedsStrip7       8
-#define dNumberLedsStrip8       92
-#define dNumberLedsStrip9       57
-#define dNumberLedsStrip10      69
+#define dNumberLedsStripA       86
+#define dNumberLedsStripB       57
+#define dNumberLedsStripC       92
+#define dNumberLedsStripD       8
+#define dNumberLedsStripE       82
+#define dNumberLedsStripF       82
+#define dNumberLedsStripG       8
+#define dNumberLedsStripH       92
+#define dNumberLedsStripI       57
+#define dNumberLedsStripJ       69
 
-#define dStartNumberLedStrip1   0
-#define dStartNumberLedStrip2   dStartNumberLedStrip1 + dNumberLedsStrip1
-#define dStartNumberLedStrip3   dStartNumberLedStrip2 + dNumberLedsStrip2
-#define dStartNumberLedStrip4   dStartNumberLedStrip3 + dNumberLedsStrip3
-#define dStartNumberLedStrip5   dStartNumberLedStrip4 + dNumberLedsStrip4
-#define dStartNumberLedStrip6   dStartNumberLedStrip5 + dNumberLedsStrip5
-#define dStartNumberLedStrip7   dStartNumberLedStrip6 + dNumberLedsStrip6
-#define dStartNumberLedStrip8   dStartNumberLedStrip7 + dNumberLedsStrip7
-#define dStartNumberLedStrip9   dStartNumberLedStrip8 + dNumberLedsStrip8
-#define dStartNumberLedStrip10  dStartNumberLedStrip9 + dNumberLedsStrip9
+#define dStartNumberLedStripA   0
+#define dStartNumberLedStripB   dStartNumberLedStripA + dNumberLedsStripA
+#define dStartNumberLedStripC   dStartNumberLedStripB + dNumberLedsStripB
+#define dStartNumberLedStripD   dStartNumberLedStripC + dNumberLedsStripC
+#define dStartNumberLedStripE   dStartNumberLedStripD + dNumberLedsStripD
+#define dStartNumberLedStripF   dStartNumberLedStripE + dNumberLedsStripE
+#define dStartNumberLedStripG   dStartNumberLedStripF + dNumberLedsStripF
+#define dStartNumberLedStripH   dStartNumberLedStripG + dNumberLedsStripG
+#define dStartNumberLedStripI   dStartNumberLedStripH + dNumberLedsStripH
+#define dStartNumberLedStripJ   dStartNumberLedStripI + dNumberLedsStripI
 
-#define dNumberLedsTotal dNumberLedsStrip1 + dNumberLedsStrip2 + dNumberLedsStrip3 + dNumberLedsStrip4 + dNumberLedsStrip5 + dNumberLedsStrip6 + dNumberLedsStrip7 + dNumberLedsStrip8 + dNumberLedsStrip9 + dNumberLedsStrip10
+#define dNumberLedsTotal dNumberLedsStripA + dNumberLedsStripB + dNumberLedsStripC + dNumberLedsStripD + dNumberLedsStripE + dNumberLedsStripF + dNumberLedsStripG + dNumberLedsStripH + dNumberLedsStripI + dNumberLedsStripJ
 
 #include <FastLED.h>
 CRGB leds[dNumberLedsTotal];
 uint8_t iHueValue = 0;
 int iPoint = 0;
+
+CRGBPalette16 currentPalette(PartyColors_p);
 
 // digital and analog pins for MSGEQ7
 
@@ -122,13 +124,13 @@ void setup() {
   Serial.begin(115200);
   u8g2.begin();
   
-  FastLED.addLeds<dTypeStrip, dDataPinBar1, dColorRange>(leds, dStartNumberLedStrip1, dNumberLedsStrip1);
-  FastLED.addLeds<dTypeStrip, dDataPinBar2, dColorRange>(leds, dStartNumberLedStrip2, dNumberLedsStrip2);
-  FastLED.addLeds<dTypeStrip, dDataPinBar3, dColorRange>(leds, dStartNumberLedStrip3, dNumberLedsStrip3 + dNumberLedsStrip4);
-  FastLED.addLeds<dTypeStrip, dDataPinBar4, dColorRange>(leds, dStartNumberLedStrip5, dNumberLedsStrip5);
-  FastLED.addLeds<dTypeStrip, dDataPinBar5, dColorRange>(leds, dStartNumberLedStrip6, dNumberLedsStrip6);
-  FastLED.addLeds<dTypeStrip, dDataPinBar6, dColorRange>(leds, dStartNumberLedStrip7, dNumberLedsStrip7 + dNumberLedsStrip8);
-  FastLED.addLeds<dTypeStrip, dDataPinBar7, dColorRange>(leds, dStartNumberLedStrip9, dNumberLedsStrip9 + dNumberLedsStrip10);
+  FastLED.addLeds<dTypeStrip, dDataPinBarA, dColorOrder>(leds, dStartNumberLedStripA, dNumberLedsStripA);
+  FastLED.addLeds<dTypeStrip, dDataPinBarB, dColorOrder>(leds, dStartNumberLedStripB, dNumberLedsStripB);
+  FastLED.addLeds<dTypeStrip, dDataPinBarC, dColorOrder>(leds, dStartNumberLedStripC, dNumberLedsStripC + dNumberLedsStripD);
+  FastLED.addLeds<dTypeStrip, dDataPinBarD, dColorOrder>(leds, dStartNumberLedStripE, dNumberLedsStripE);
+  FastLED.addLeds<dTypeStrip, dDataPinBarE, dColorOrder>(leds, dStartNumberLedStripF, dNumberLedsStripF);
+  FastLED.addLeds<dTypeStrip, dDataPinBarF, dColorOrder>(leds, dStartNumberLedStripG, dNumberLedsStripG + dNumberLedsStripH);
+  FastLED.addLeds<dTypeStrip, dDataPinBarG, dColorOrder>(leds, dStartNumberLedStripI, dNumberLedsStripI + dNumberLedsStripJ);
         
   FastLED.setBrightness(dBrightness);
   FastLED.clear();
@@ -145,7 +147,7 @@ void setup() {
 }
  
 void loop() {
-  
+
   bool newReading = MSGEQ7.read(MSGEQ7_INTERVAL);
 
   if (newReading) {
@@ -196,72 +198,32 @@ void loop() {
   
   }
 
-  vShowOnDisplay(bSpectrumValueL[0], bSpectrumValueR[0], bSpectrumValueL[1], bSpectrumValueR[1],
-                 bSpectrumValueL[2], bSpectrumValueR[2], bSpectrumValueL[3], bSpectrumValueR[3], 
-                 bSpectrumValueL[4], bSpectrumValueR[4], bSpectrumValueL[5], bSpectrumValueR[5]);
+//  display is currently off cause of performance
+
+//  vShowOnDisplay(bSpectrumValueL[0], bSpectrumValueR[0], bSpectrumValueL[1], bSpectrumValueR[1],
+//                 bSpectrumValueL[2], bSpectrumValueR[2], bSpectrumValueL[3], bSpectrumValueR[3], 
+//                 bSpectrumValueL[4], bSpectrumValueR[4], bSpectrumValueL[5], bSpectrumValueR[5]);
  
   FastLED.clear();
-
-/*  
- *   check if there is a peak between 5 frames, then change the color
- */
-
-  byte bHueChangeCount = 0;
-  byte bVolumePeak = 255 * 0.2;
   
-  bVolume5 = bVolume4;
-  bVolume4 = bVolume3;
-  bVolume3 = bVolume2;
-  bVolume2 = bVolume1;
-  bVolume1 = max(bSpectrumValueL[0], bSpectrumValueR[0]);
+  vShowLedBarSolidUV(bSpectrumValueL[1], dStartNumberLedStripA, dNumberLedsStripA, iHueValue, true);
+  vShowLedBarSolidUV(bSpectrumValueL[2], dStartNumberLedStripB, dNumberLedsStripB, iHueValue, false);
+  vShowLedBarSolidUV(bSpectrumValueL[3], dStartNumberLedStripC, dNumberLedsStripC, iHueValue, true);
+  vShowLedBarFullUV(bSpectrumValueL[0], dStartNumberLedStripD, dNumberLedsStripD, iHueValue);
+  vShowLedBarFire(bSpectrumValueL[4], dStartNumberLedStripE, dNumberLedsStripE, false);
 
-  if (bVolume1 > bVolumePeak) { 
-    bHueChangeCount++;
-  }
-  if (bVolume2 > bVolumePeak) { 
-    bHueChangeCount++;
-  }
-  if (bVolume3 > bVolumePeak) { 
-    bHueChangeCount++; 
-  }
-  if (bVolume4 > bVolumePeak) { 
-    bHueChangeCount++;
-  }
-  if (bVolume5 > bVolumePeak) { 
-    bHueChangeCount++; 
-  }
-
-  if ( bHueChangeCount == 1 ) { 
-    iHueValue = iHueValue + 16; 
-  }
-
-/*  
- *  vShowLedBarSoludUV: check first which side has the maximum SpectrumValue then set the proportion between  
- *  value from the spectrum each channel from lowest to highes byte to the amount of leds in one section
- */
-
-//  vShowLedBarSolidUV(max(bSpectrumValueL[1], bSpectrumValueR[1]), 
-//                     dStartNumberLedStrip1 + dNumberLedsStrip1 / 2, dNumberLedsStrip1 / 2, iHueValue + 96, false); 
- 
-//  vShowLedBarGlowUV(max(bSpectrumValueL[0], bSpectrumValueR[0]), 
-//                    dStartNumberLedStrip1 , dNumberLedsStrip1 / 2, iHueValue, true);
-
-
-  vShowLedBarSolidUV(bSpectrumValueL[0], dStartNumberLedStrip1, dNumberLedsStrip1, iHueValue, true);
-  vShowLedBarSolidUV(bSpectrumValueL[1], dStartNumberLedStrip2, dNumberLedsStrip2, iHueValue, false);
-  vShowLedBarSolidUV(bSpectrumValueL[2], dStartNumberLedStrip3, dNumberLedsStrip3, iHueValue, true);
-  vShowLedBarSolidUV(bSpectrumValueL[3], dStartNumberLedStrip5, dNumberLedsStrip5, iHueValue, false);
-
-  vShowLedBarSolidUV(bSpectrumValueR[3], dStartNumberLedStrip6, dNumberLedsStrip6, iHueValue, true);
-  vShowLedBarSolidUV(bSpectrumValueR[2], dStartNumberLedStrip8, dNumberLedsStrip8, iHueValue, false);
-  vShowLedBarSolidUV(bSpectrumValueR[1], dStartNumberLedStrip9, dNumberLedsStrip9, iHueValue, true);
-  vShowLedBarSolidUV(bSpectrumValueR[0], dStartNumberLedStrip10, dNumberLedsStrip10, iHueValue, false);
-
+  vShowLedBarSolidUV(bSpectrumValueR[4], dStartNumberLedStripF, dNumberLedsStripF, iHueValue, true);
+  vShowLedBarFullUV(bSpectrumValueL[0], dStartNumberLedStripG, dNumberLedsStripG, iHueValue);
+  vShowLedBarSolidUV(bSpectrumValueR[3], dStartNumberLedStripH, dNumberLedsStripH, iHueValue, false);
+  vShowLedBarSolidUV(bSpectrumValueR[2], dStartNumberLedStripI, dNumberLedsStripI, iHueValue, true);
+  vShowLedBarSolidUV(bSpectrumValueR[1], dStartNumberLedStripJ, dNumberLedsStripJ, iHueValue, false);
 
   iHueValue++;
   if (iHueValue == 256) { iHueValue = 0; }
 
   FastLED.show();
+
+  Serial.println(iHueValue);
 
 }
 
@@ -291,32 +253,93 @@ void vShowLedBarGlowUV(byte bSpectrumValue, int iLedStart, int iLedCount, int iH
   
   int iLimitDark = iLedCount * 0.1;
   int iLimitDarkSteps = 255 / iLimitDark;
-  int iLimitLight = iLedCount * 0.8;
-  int iLimitLightSteps = 255 / (iLedCount - iLimitLight);
 
   int iLeds = map(bSpectrumValue, 0, 255, 0, iLedCount);
   
-  byte bSat = 255;
   byte bVal = 255; 
-
-  if ( iLeds >= iLimitLight) {
-    bSat = bSat - iLimitLightSteps * ( iLeds - iLimitLight);
-  }  
 
   if (bDirection == true) {
     for (int i = iLedStart; i - iLedStart < iLeds; i++) {
       if ( i >= iLedStart + iLeds - iLimitDark) {
         bVal = bVal - iLimitDarkSteps;
       }
-      if (bSat < 255) {
-        bSat = bSat + iLimitLightSteps;
-      }
-      leds[i] = CHSV(iHueValue, bSat, bVal);
+
+      leds[i] = CHSV(iHueValue, 255, bVal);
     }
   } else {
+    for (int i = iLedStart + iLedCount; (iLedStart + iLedCount) - i < iLeds; i--) {
 
+    }
   }
 
+}
+
+void vShowLedBarFire(byte bSpectrumValue, int iLedStart, int iLedCount, bool bDirection) {
+  
+  #define xscale 20       // How far apart they are
+  #define yscale 3        // How fast they move
+  uint8_t index = 0;      // Current colour lookup value. 
+  uint16_t sampleavg = 0;
+
+  /* 
+   *  Fire palette definition. Lower value = darker.
+   *  Problem: my RGB order has an offset of 96 and it's not possible to change the order in the setup.
+   *  Otherwise it won't upload to the Mega 2560. Verifying is okay, but upload not.
+   *  This the old CRGBPalette16 Code:
+   *  currentPalette = CRGBPalette16(CHSV(0,255,2), CHSV(0,255,4), CHSV(0,255,8), CHSV(0, 255, 8),
+                                 CHSV(0, 255, 16), CRGB::Red, CRGB::Red, CRGB::Red,                                   
+                                 CRGB::DarkOrange,CRGB::DarkOrange, CRGB::Orange, CRGB::Orange,
+                                 CRGB::Yellow, CRGB::Orange, CRGB::Yellow, CRGB::Yellow);
+   */
+  
+  currentPalette = CRGBPalette16(CHSV(  0+160, 255,   2), 
+                                 CHSV(  0+160, 255,   4),  
+                                 CHSV(  0+160, 255,   8), 
+                                 CHSV(  0+160, 255,   8),
+                                 
+                                 CHSV(  0+160, 255,  16), 
+                                 CHSV(  0+160, 255, 255), //CRGB::Red 
+                                 CHSV(  0+160, 255, 255), //CRGB::Red
+                                 CHSV(  0+160, 255, 255), //CRGB::Red
+
+                                 CHSV( 33+160, 255, 255), //CRGB::DarkOrange
+                                 CHSV( 33+160, 255, 255), //CRGB::DarkOrange
+                                 CHSV( 39+160, 255, 255), //CRGB::Orange
+                                 CHSV( 39+160, 255, 255), //CRGB::Orange
+                                 
+                                 CHSV( 60+140, 255, 255), //CRGB::Yellow
+                                 CHSV( 39+160, 255, 255), //CRGB::Orange
+                                 CHSV( 60+140, 255, 255), //CRGB::Yellow
+                                 CHSV( 60+140, 255, 255));//CRGB::Yellow
+
+  int iLeds = map(bSpectrumValue, 0, 255, 0, iLedCount);
+
+  if (bDirection == true) {
+    for (int i = iLedStart; i - iLedStart < iLeds; i++) {
+      index = inoise8(i*xscale,millis()*yscale*iLeds/255);                      // X location is constant, but we move along the Y at the rate of millis(). By Andrew Tuline.
+  
+      index = (255 - i*256/iLeds) * index/128;                                  // Now we need to scale index so that it gets blacker as we get close to one of the ends
+                                                                                // This is a simple y=mx+b equation that's been scaled. index/128 is another scaling.
+      leds[i] = ColorFromPalette(currentPalette, index, iLeds, NOBLEND);        // With that value, look up the 8 bit colour palette value and assign it to the current LED. 
+    }
+  } else {
+    for (int i = iLedStart + iLedCount; (iLedStart + iLedCount) - i < iLeds; i--) {
+      index = inoise8(i*xscale,millis()*yscale*iLeds/255);                      // X location is constant, but we move along the Y at the rate of millis(). By Andrew Tuline.
+  
+      index = (255 - i*256/iLeds) * index/128;                                  // Now we need to scale index so that it gets blacker as we get close to one of the ends
+                                                                                // This is a simple y=mx+b equation that's been scaled. index/128 is another scaling.
+      leds[i] = ColorFromPalette(currentPalette, index, iLeds, NOBLEND);        // With that value, look up the 8 bit colour palette value and assign it to the current LED. 
+    }    
+  }
+
+}
+
+void vShowLedBarFullUV(byte bSpectrumValue, int iLedStart, int iLedCount, int iHueValue) {
+
+    for (int i = iLedStart; i - iLedStart < iLedCount; i++) {
+      leds[i] = CHSV(iHueValue, 255, bSpectrumValue);
+    }
+  
 }
 
 void vShowOnDisplay(byte bVolValL0, byte bVolValR0, byte bVolValL1, byte bVolValR1, 
