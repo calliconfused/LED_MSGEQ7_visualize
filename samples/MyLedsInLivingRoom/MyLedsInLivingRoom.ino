@@ -1,6 +1,74 @@
 /*
- * define all variables to adjust the controller
+ * Calli Confuse - MyLedsInLivingRoom v0.1 - 2018
+ * 
+ * for more information about the complete project please visit: https://github.com/calliconfused/LED_MSGEQ7_visualize 
+ * 
+ * led arrangement in my living room
+ * 
+ *                               82 leds            82 leds
+ *                         4------------------5------------------6
+ *                         |                                     |
+ *                         | 8 leds                              | 8 leds
+ *                        /                                       \
+ *                       /                                         \
+ *             92 leds  /                                           \ 92 leds
+ *                     /                                             \
+ *                    /                                               \
+ *                   3                                                 7
+ *                    \                                               /
+ *                     \                                             /
+ *             57 leds  \                                           / 57 leds
+ *                       \                                         /
+ *                        \                                       /
+ *                         \                                     /
+ *                          2------------------1 ::: -----------8† (interface point dead, combined with 7)
+ *                                 86 leds             69 leds
+ * 
  */
+
+// LED strip
+
+#define dColorRange             RBG
+#define dTypeStrip              WS2812
+#define dBrightness             192
+
+#define dDataPinBar1            25  // cable yellow I
+#define dDataPinBar2            29  // cable green I
+#define dDataPinBar3            33  // cable orange I
+#define dDataPinBar4            37  // cable violet I
+#define dDataPinBar5            41  // cable green II
+#define dDataPinBar6            45  // cable yellow II
+#define dDataPinBar7            49  // cable violet II
+// cable orange II is damaged and is replaces together with data pin bar 7
+
+#define dNumberLedsStrip1       86
+#define dNumberLedsStrip2       57
+#define dNumberLedsStrip3       92
+#define dNumberLedsStrip4       8
+#define dNumberLedsStrip5       82
+#define dNumberLedsStrip6       82
+#define dNumberLedsStrip7       8
+#define dNumberLedsStrip8       92
+#define dNumberLedsStrip9       57
+#define dNumberLedsStrip10      69
+
+#define dStartNumberLedStrip1   0
+#define dStartNumberLedStrip2   dStartNumberLedStrip1 + dNumberLedsStrip1
+#define dStartNumberLedStrip3   dStartNumberLedStrip2 + dNumberLedsStrip2
+#define dStartNumberLedStrip4   dStartNumberLedStrip3 + dNumberLedsStrip3
+#define dStartNumberLedStrip5   dStartNumberLedStrip4 + dNumberLedsStrip4
+#define dStartNumberLedStrip6   dStartNumberLedStrip5 + dNumberLedsStrip5
+#define dStartNumberLedStrip7   dStartNumberLedStrip6 + dNumberLedsStrip6
+#define dStartNumberLedStrip8   dStartNumberLedStrip7 + dNumberLedsStrip7
+#define dStartNumberLedStrip9   dStartNumberLedStrip8 + dNumberLedsStrip8
+#define dStartNumberLedStrip10  dStartNumberLedStrip9 + dNumberLedsStrip9
+
+#define dNumberLedsTotal dNumberLedsStrip1 + dNumberLedsStrip2 + dNumberLedsStrip3 + dNumberLedsStrip4 + dNumberLedsStrip5 + dNumberLedsStrip6 + dNumberLedsStrip7 + dNumberLedsStrip8 + dNumberLedsStrip9 + dNumberLedsStrip10
+
+#include <FastLED.h>
+CRGB leds[dNumberLedsTotal];
+uint8_t iHueValue = 0;
+int iPoint = 0;
 
 // digital and analog pins for MSGEQ7
 
@@ -12,89 +80,11 @@
 #define MSGEQ7_SMOOTH           40  // Range: 0-255
 #define MSGEQ7_STARTVOL         40  // to adjust when the script will start to work
 
-// LED strip
-
-#define dColorRange             RBG
-#define dTypeStrip              WS2812
-#define dBrightness             80 
-
-#define dDataPinStrip1          25
-#define dDataPinStrip2          29
-#define dDataPinStrip3          33
-#define dDataPinStrip4          37
-#define dDataPinStrip5          41
-#define dDataPinStrip6          45
-#define dDataPinStrip7          49
-#define dDataPinStrip8          53
-
-#define dNumberLedsStrip1       86
-#define dNumberLedsStrip2       57
-#define dNumberLedsStrip3       100
-#define dNumberLedsStrip4       82
-#define dNumberLedsStrip5       82
-#define dNumberLedsStrip6       100
-#define dNumberLedsStrip7       57
-#define dNumberLedsStrip8       69
-
-
-#define dStartNumberLedStrip1   0
-#define dStartNumberLedStrip2   dStartNumberLedStrip1 + dNumberLedsStrip1
-#define dStartNumberLedStrip3   dStartNumberLedStrip2 + dNumberLedsStrip2
-#define dStartNumberLedStrip4   dStartNumberLedStrip3 + dNumberLedsStrip3
-#define dStartNumberLedStrip5   dStartNumberLedStrip4 + dNumberLedsStrip4
-#define dStartNumberLedStrip6   dStartNumberLedStrip5 + dNumberLedsStrip5
-#define dStartNumberLedStrip7   dStartNumberLedStrip6 + dNumberLedsStrip6
-#define dStartNumberLedStrip8   dStartNumberLedStrip7 + dNumberLedsStrip7
-
-#define dNumberLedsTotal dNumberLedsStrip1 + dNumberLedsStrip2 + dNumberLedsStrip3 + dNumberLedsStrip4 + dNumberLedsStrip5 + dNumberLedsStrip6 + dNumberLedsStrip7 + dNumberLedsStrip8
-
-// display properties
-
-#define dDisplayBarYPosition    25  // vertical position of bars
-#define dDisplayBarMaxLength    25  // max length of bars
-#define dDisplayBarWidth        9   // max width of bars
-#define dDisplayBarWidthOffset  1   // space between bars
-#define dDisplayTextYPosition   32  // lowest position of text
-
-/* 
- * u8g2
- */
-
-#include <Arduino.h>
-#include <U8g2lib.h>
-
-#ifdef U8X8_HAVE_HW_SPI
-#include <SPI.h>
-#endif
-#ifdef U8X8_HAVE_HW_I2C
-#include <Wire.h>
-#endif
-U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R0); 
-byte bDisplayBarXPosition;
-byte bDisplayBarLength;
-
-/*
- * MSGEQ7
- */
-
 #include "MSGEQ7.h"
 CMSGEQ7<MSGEQ7_SMOOTH, dResetPin, dStrobePin, dAnalogPinL, dAnalogPinR> MSGEQ7;
 
 uint8_t bSpectrumValueL[6];
 uint8_t bSpectrumValueR[6];
-
-/*
- * FastLED
- */
-
-#include <FastLED.h>
-CRGB leds[dNumberLedsTotal];
-uint8_t iHueValue = 0;
-int iPoint = 0;
-
-/* 
- *  additional variables
- */
 
 byte bVolume1 = 0;
 byte bVolume2 = 0;
@@ -102,20 +92,43 @@ byte bVolume3 = 0;
 byte bVolume4 = 0;
 byte bVolume5 = 0;
 
+// display properties
+
+#include <Arduino.h>
+#include <U8g2lib.h>
+
+#ifdef U8X8_HAVE_HW_SPI
+#include <SPI.h>
+#endif
+
+#ifdef U8X8_HAVE_HW_I2C
+#include <Wire.h>
+#endif
+
+U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R2); // display will be rotate 180 degrees, otherwise cable management in housing is terrible 
+
+#define dDisplayBarYPosition    25  // vertical position of bars
+#define dDisplayBarMaxLength    25  // max length of bars
+#define dDisplayBarWidth        9   // max width of bars
+#define dDisplayBarWidthOffset  1   // space between bars
+#define dDisplayTextYPosition   32  // lowest position of text
+
+byte bDisplayBarXPosition;
+byte bDisplayBarLength;
+
 void setup() {
   
   Serial2.begin(115200);
   Serial.begin(115200);
   u8g2.begin();
   
-  FastLED.addLeds<dTypeStrip, dDataPinStrip1, dColorRange>(leds, dStartNumberLedStrip1, dNumberLedsStrip1);
-  FastLED.addLeds<dTypeStrip, dDataPinStrip2, dColorRange>(leds, dStartNumberLedStrip2, dNumberLedsStrip2);
-  FastLED.addLeds<dTypeStrip, dDataPinStrip3, dColorRange>(leds, dStartNumberLedStrip3, dNumberLedsStrip3);
-  FastLED.addLeds<dTypeStrip, dDataPinStrip4, dColorRange>(leds, dStartNumberLedStrip4, dNumberLedsStrip4);
-  FastLED.addLeds<dTypeStrip, dDataPinStrip5, dColorRange>(leds, dStartNumberLedStrip5, dNumberLedsStrip5);
-  FastLED.addLeds<dTypeStrip, dDataPinStrip6, dColorRange>(leds, dStartNumberLedStrip6, dNumberLedsStrip6);
-  FastLED.addLeds<dTypeStrip, dDataPinStrip7, dColorRange>(leds, dStartNumberLedStrip7, dNumberLedsStrip7);
-  FastLED.addLeds<dTypeStrip, dDataPinStrip8, dColorRange>(leds, dStartNumberLedStrip8, dNumberLedsStrip8);
+  FastLED.addLeds<dTypeStrip, dDataPinBar1, dColorRange>(leds, dStartNumberLedStrip1, dNumberLedsStrip1);
+  FastLED.addLeds<dTypeStrip, dDataPinBar2, dColorRange>(leds, dStartNumberLedStrip2, dNumberLedsStrip2);
+  FastLED.addLeds<dTypeStrip, dDataPinBar3, dColorRange>(leds, dStartNumberLedStrip3, dNumberLedsStrip3 + dNumberLedsStrip4);
+  FastLED.addLeds<dTypeStrip, dDataPinBar4, dColorRange>(leds, dStartNumberLedStrip5, dNumberLedsStrip5);
+  FastLED.addLeds<dTypeStrip, dDataPinBar5, dColorRange>(leds, dStartNumberLedStrip6, dNumberLedsStrip6);
+  FastLED.addLeds<dTypeStrip, dDataPinBar6, dColorRange>(leds, dStartNumberLedStrip7, dNumberLedsStrip7 + dNumberLedsStrip8);
+  FastLED.addLeds<dTypeStrip, dDataPinBar7, dColorRange>(leds, dStartNumberLedStrip9, dNumberLedsStrip9 + dNumberLedsStrip10);
         
   FastLED.setBrightness(dBrightness);
   FastLED.clear();
@@ -230,26 +243,20 @@ void loop() {
 //  vShowLedBarSolidUV(max(bSpectrumValueL[1], bSpectrumValueR[1]), 
 //                     dStartNumberLedStrip1 + dNumberLedsStrip1 / 2, dNumberLedsStrip1 / 2, iHueValue + 96, false); 
  
-  vShowLedBarGlowUV(max(bSpectrumValueL[0], bSpectrumValueR[0]), 
-                    dStartNumberLedStrip1 , dNumberLedsStrip1 / 2, iHueValue, true);
-  vShowLedBarGlowUV(max(bSpectrumValueL[1], bSpectrumValueR[1]), 
-                     dStartNumberLedStrip1 + dNumberLedsStrip1 / 2, dNumberLedsStrip1 / 2, iHueValue + 96, true);
-  vShowLedBarGlowUV(max(bSpectrumValueL[2], bSpectrumValueR[2]), 
-                    dStartNumberLedStrip2 , dNumberLedsStrip2 / 2, iHueValue + 64, true);
-  vShowLedBarGlowUV(max(bSpectrumValueL[3], bSpectrumValueR[3]), 
-                     dStartNumberLedStrip2 + dNumberLedsStrip2 / 2, dNumberLedsStrip2 / 2, iHueValue + 128, true);
-  vShowLedBarGlowUV(max(bSpectrumValueL[4], bSpectrumValueR[4]), 
-                    dStartNumberLedStrip3 , dNumberLedsStrip3 / 2, iHueValue + 32, true);
-  vShowLedBarGlowUV(max(bSpectrumValueL[5], bSpectrumValueR[5]), 
-                     dStartNumberLedStrip3 + dNumberLedsStrip3 / 2, dNumberLedsStrip3 / 2, iHueValue + 168, true);
-  vShowLedBarGlowUV(max(bSpectrumValueL[2], bSpectrumValueR[2]), 
-                    dStartNumberLedStrip4 , dNumberLedsStrip4 / 2, iHueValue + 64, true);
-  vShowLedBarGlowUV(max(bSpectrumValueL[3], bSpectrumValueR[3]), 
-                     dStartNumberLedStrip4 + dNumberLedsStrip4 / 2, dNumberLedsStrip4 / 2, iHueValue + 128, true);
-  vShowLedBarGlowUV(max(bSpectrumValueL[4], bSpectrumValueR[4]), 
-                    dStartNumberLedStrip5 , dNumberLedsStrip5 / 2, iHueValue + 32, true);
-  vShowLedBarGlowUV(max(bSpectrumValueL[5], bSpectrumValueR[5]), 
-                     dStartNumberLedStrip5 + dNumberLedsStrip5 / 2, dNumberLedsStrip5 / 2, iHueValue + 168, true);
+//  vShowLedBarGlowUV(max(bSpectrumValueL[0], bSpectrumValueR[0]), 
+//                    dStartNumberLedStrip1 , dNumberLedsStrip1 / 2, iHueValue, true);
+
+
+  vShowLedBarSolidUV(bSpectrumValueL[0], dStartNumberLedStrip1, dNumberLedsStrip1, iHueValue, true);
+  vShowLedBarSolidUV(bSpectrumValueL[1], dStartNumberLedStrip2, dNumberLedsStrip2, iHueValue, false);
+  vShowLedBarSolidUV(bSpectrumValueL[2], dStartNumberLedStrip3, dNumberLedsStrip3, iHueValue, true);
+  vShowLedBarSolidUV(bSpectrumValueL[3], dStartNumberLedStrip5, dNumberLedsStrip5, iHueValue, false);
+
+  vShowLedBarSolidUV(bSpectrumValueR[3], dStartNumberLedStrip6, dNumberLedsStrip6, iHueValue, true);
+  vShowLedBarSolidUV(bSpectrumValueR[2], dStartNumberLedStrip8, dNumberLedsStrip8, iHueValue, false);
+  vShowLedBarSolidUV(bSpectrumValueR[1], dStartNumberLedStrip9, dNumberLedsStrip9, iHueValue, true);
+  vShowLedBarSolidUV(bSpectrumValueR[0], dStartNumberLedStrip10, dNumberLedsStrip10, iHueValue, false);
+
 
   iHueValue++;
   if (iHueValue == 256) { iHueValue = 0; }
@@ -400,4 +407,3 @@ void vShowOnDisplay(byte bVolValL0, byte bVolValR0, byte bVolValL1, byte bVolVal
   } while ( u8g2.nextPage() );
   
 }
-
