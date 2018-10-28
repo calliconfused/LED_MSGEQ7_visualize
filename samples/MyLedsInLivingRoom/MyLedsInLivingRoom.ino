@@ -8,7 +8,7 @@
  *                               82 leds            82 leds
  *                         D------------------E------------------F
  *                         |                                     |
- *                         | 8 leds                              | 8 leds
+ *                         | 7 leds                              | 8 leds
  *                        /                                       \
  *                       /                                         \
  *             92 leds  /                                           \ 92 leds
@@ -26,9 +26,12 @@
  * 
  */
 
+#include "Arduino.h"
+
 // LED strip
 
-#define dColorOrder             RGB
+#include "FastLED.h"
+#define dColorOrder             GRB
 #define dTypeStrip              WS2812
 #define dBrightness             192
 
@@ -44,7 +47,7 @@
 #define dNumberLedsStripA       86
 #define dNumberLedsStripB       57
 #define dNumberLedsStripC       92
-#define dNumberLedsStripD       8
+#define dNumberLedsStripD       7
 #define dNumberLedsStripE       82
 #define dNumberLedsStripF       82
 #define dNumberLedsStripG       8
@@ -65,14 +68,14 @@
 
 #define dNumberLedsTotal dNumberLedsStripA + dNumberLedsStripB + dNumberLedsStripC + dNumberLedsStripD + dNumberLedsStripE + dNumberLedsStripF + dNumberLedsStripG + dNumberLedsStripH + dNumberLedsStripI + dNumberLedsStripJ
 
-#include <FastLED.h>
+byte bHueTimer = 0;
+
 CRGB leds[dNumberLedsTotal];
 uint8_t iHueValue = 0;
-int iPoint = 0;
-
-CRGBPalette16 currentPalette(PartyColors_p);
 
 // digital and analog pins for MSGEQ7
+
+#include "MSGEQ7.h"
 
 #define dAnalogPinL             0   // MSGEQ7 OUT
 #define dAnalogPinR             1   // MSGEQ7 OUT
@@ -82,29 +85,24 @@ CRGBPalette16 currentPalette(PartyColors_p);
 #define MSGEQ7_SMOOTH           40  // Range: 0-255
 #define MSGEQ7_STARTVOL         40  // to adjust when the script will start to work
 
-#include "MSGEQ7.h"
 CMSGEQ7<MSGEQ7_SMOOTH, dResetPin, dStrobePin, dAnalogPinL, dAnalogPinR> MSGEQ7;
 
 uint8_t bSpectrumValueL[6];
 uint8_t bSpectrumValueR[6];
 
-byte bVolume1 = 0;
-byte bVolume2 = 0;
-byte bVolume3 = 0;
-byte bVolume4 = 0;
-byte bVolume5 = 0;
+byte bVolumeL;
+byte bVolumeR;
 
 // display properties
 
-#include <Arduino.h>
-#include <U8g2lib.h>
+#include "U8g2lib.h"
 
 #ifdef U8X8_HAVE_HW_SPI
-#include <SPI.h>
+#include "SPI.h"
 #endif
 
 #ifdef U8X8_HAVE_HW_I2C
-#include <Wire.h>
+#include "Wire.h"
 #endif
 
 U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R2); // display will be rotate 180 degrees, otherwise cable management in housing is terrible 
@@ -120,7 +118,7 @@ byte bDisplayBarLength;
 
 void setup() {
   
-  Serial2.begin(115200);
+//  Serial2.begin(115200);
   Serial.begin(115200);
   u8g2.begin();
   
@@ -151,6 +149,9 @@ void loop() {
   bool newReading = MSGEQ7.read(MSGEQ7_INTERVAL);
 
   if (newReading) {
+
+    bVolumeL = MSGEQ7.getVolume(0);
+    bVolumeR = MSGEQ7.getVolume(1);
 
     if (MSGEQ7.getVolume(0) > MSGEQ7_STARTVOL) {
 
@@ -198,32 +199,37 @@ void loop() {
   
   }
 
-//  display is currently off cause of performance
-
-//  vShowOnDisplay(bSpectrumValueL[0], bSpectrumValueR[0], bSpectrumValueL[1], bSpectrumValueR[1],
-//                 bSpectrumValueL[2], bSpectrumValueR[2], bSpectrumValueL[3], bSpectrumValueR[3], 
-//                 bSpectrumValueL[4], bSpectrumValueR[4], bSpectrumValueL[5], bSpectrumValueR[5]);
+  // Display function for all values currently off because of performance problems
+//  vShowOnDisplayUV(bSpectrumValueL[0], bSpectrumValueR[0], bSpectrumValueL[1], bSpectrumValueR[1],
+//                   bSpectrumValueL[2], bSpectrumValueR[2], bSpectrumValueL[3], bSpectrumValueR[3], 
+//                   bSpectrumValueL[4], bSpectrumValueR[4], bSpectrumValueL[5], bSpectrumValueR[5]);
+  
+  vShowOnDisplayVol(bVolumeL, bVolumeR);
  
   FastLED.clear();
   
-  vShowLedBarSolidUV(bSpectrumValueL[1], dStartNumberLedStripA, dNumberLedsStripA, iHueValue, true);
-  vShowLedBarSolidUV(bSpectrumValueL[2], dStartNumberLedStripB, dNumberLedsStripB, iHueValue, false);
-  vShowLedBarSolidUV(bSpectrumValueL[3], dStartNumberLedStripC, dNumberLedsStripC, iHueValue, true);
+  vShowLedBarGlowUV(bSpectrumValueL[1], dStartNumberLedStripA, dNumberLedsStripA, iHueValue, true);
+  vShowLedBarGlowUV(bSpectrumValueL[2], dStartNumberLedStripB, dNumberLedsStripB, iHueValue, false);
+  vShowLedBarGlowUV(bSpectrumValueL[3], dStartNumberLedStripC, dNumberLedsStripC, iHueValue, true);
   vShowLedBarFullUV(bSpectrumValueL[0], dStartNumberLedStripD, dNumberLedsStripD, iHueValue);
-  vShowLedBarFire(bSpectrumValueL[4], dStartNumberLedStripE, dNumberLedsStripE, false);
+  vShowLedBarGlowUV(bSpectrumValueL[4], dStartNumberLedStripE, dNumberLedsStripE, iHueValue, false);
 
-  vShowLedBarSolidUV(bSpectrumValueR[4], dStartNumberLedStripF, dNumberLedsStripF, iHueValue, true);
+  vShowLedBarGlowUV(bSpectrumValueR[4], dStartNumberLedStripF, dNumberLedsStripF, iHueValue, true);
   vShowLedBarFullUV(bSpectrumValueL[0], dStartNumberLedStripG, dNumberLedsStripG, iHueValue);
-  vShowLedBarSolidUV(bSpectrumValueR[3], dStartNumberLedStripH, dNumberLedsStripH, iHueValue, false);
-  vShowLedBarSolidUV(bSpectrumValueR[2], dStartNumberLedStripI, dNumberLedsStripI, iHueValue, true);
-  vShowLedBarSolidUV(bSpectrumValueR[1], dStartNumberLedStripJ, dNumberLedsStripJ, iHueValue, false);
+  vShowLedBarGlowUV(bSpectrumValueR[3], dStartNumberLedStripH, dNumberLedsStripH, iHueValue, false);
+  vShowLedBarGlowUV(bSpectrumValueR[2], dStartNumberLedStripI, dNumberLedsStripI, iHueValue, true);
+  vShowLedBarGlowUV(bSpectrumValueR[1], dStartNumberLedStripJ, dNumberLedsStripJ, iHueValue, false);
 
-  iHueValue++;
+  if (bHueTimer >= 3) { 
+    iHueValue++;
+    bHueTimer = 0; 
+  } else {
+    bHueTimer++;
+  }
+  
   if (iHueValue == 256) { iHueValue = 0; }
 
   FastLED.show();
-
-  Serial.println(iHueValue);
 
 }
 
@@ -254,82 +260,23 @@ void vShowLedBarGlowUV(byte bSpectrumValue, int iLedStart, int iLedCount, int iH
   int iLimitDark = iLedCount * 0.1;
   int iLimitDarkSteps = 255 / iLimitDark;
 
-  int iLeds = map(bSpectrumValue, 0, 255, 0, iLedCount);
-  
-  byte bVal = 255; 
-
+  int iLeds = map(bSpectrumValue, 0, 255, 0, iLedCount); 
+  byte bVal = 255;
+    
   if (bDirection == true) {
     for (int i = iLedStart; i - iLedStart < iLeds; i++) {
       if ( i >= iLedStart + iLeds - iLimitDark) {
         bVal = bVal - iLimitDarkSteps;
       }
-
       leds[i] = CHSV(iHueValue, 255, bVal);
     }
   } else {
     for (int i = iLedStart + iLedCount; (iLedStart + iLedCount) - i < iLeds; i--) {
-
+      if ( i <= (iLedStart + iLedCount) - iLeds + iLimitDark) {
+        bVal = bVal - iLimitDarkSteps;
+      }
+      leds[i] = CHSV(iHueValue, 255, bVal);
     }
-  }
-
-}
-
-void vShowLedBarFire(byte bSpectrumValue, int iLedStart, int iLedCount, bool bDirection) {
-  
-  #define xscale 20       // How far apart they are
-  #define yscale 3        // How fast they move
-  uint8_t index = 0;      // Current colour lookup value. 
-  uint16_t sampleavg = 0;
-
-  /* 
-   *  Fire palette definition. Lower value = darker.
-   *  Problem: my RGB order has an offset of 96 and it's not possible to change the order in the setup.
-   *  Otherwise it won't upload to the Mega 2560. Verifying is okay, but upload not.
-   *  This the old CRGBPalette16 Code:
-   *  currentPalette = CRGBPalette16(CHSV(0,255,2), CHSV(0,255,4), CHSV(0,255,8), CHSV(0, 255, 8),
-                                 CHSV(0, 255, 16), CRGB::Red, CRGB::Red, CRGB::Red,                                   
-                                 CRGB::DarkOrange,CRGB::DarkOrange, CRGB::Orange, CRGB::Orange,
-                                 CRGB::Yellow, CRGB::Orange, CRGB::Yellow, CRGB::Yellow);
-   */
-  
-  currentPalette = CRGBPalette16(CHSV(  0+160, 255,   2), 
-                                 CHSV(  0+160, 255,   4),  
-                                 CHSV(  0+160, 255,   8), 
-                                 CHSV(  0+160, 255,   8),
-                                 
-                                 CHSV(  0+160, 255,  16), 
-                                 CHSV(  0+160, 255, 255), //CRGB::Red 
-                                 CHSV(  0+160, 255, 255), //CRGB::Red
-                                 CHSV(  0+160, 255, 255), //CRGB::Red
-
-                                 CHSV( 33+160, 255, 255), //CRGB::DarkOrange
-                                 CHSV( 33+160, 255, 255), //CRGB::DarkOrange
-                                 CHSV( 39+160, 255, 255), //CRGB::Orange
-                                 CHSV( 39+160, 255, 255), //CRGB::Orange
-                                 
-                                 CHSV( 60+140, 255, 255), //CRGB::Yellow
-                                 CHSV( 39+160, 255, 255), //CRGB::Orange
-                                 CHSV( 60+140, 255, 255), //CRGB::Yellow
-                                 CHSV( 60+140, 255, 255));//CRGB::Yellow
-
-  int iLeds = map(bSpectrumValue, 0, 255, 0, iLedCount);
-
-  if (bDirection == true) {
-    for (int i = iLedStart; i - iLedStart < iLeds; i++) {
-      index = inoise8(i*xscale,millis()*yscale*iLeds/255);                      // X location is constant, but we move along the Y at the rate of millis(). By Andrew Tuline.
-  
-      index = (255 - i*256/iLeds) * index/128;                                  // Now we need to scale index so that it gets blacker as we get close to one of the ends
-                                                                                // This is a simple y=mx+b equation that's been scaled. index/128 is another scaling.
-      leds[i] = ColorFromPalette(currentPalette, index, iLeds, NOBLEND);        // With that value, look up the 8 bit colour palette value and assign it to the current LED. 
-    }
-  } else {
-    for (int i = iLedStart + iLedCount; (iLedStart + iLedCount) - i < iLeds; i--) {
-      index = inoise8(i*xscale,millis()*yscale*iLeds/255);                      // X location is constant, but we move along the Y at the rate of millis(). By Andrew Tuline.
-  
-      index = (255 - i*256/iLeds) * index/128;                                  // Now we need to scale index so that it gets blacker as we get close to one of the ends
-                                                                                // This is a simple y=mx+b equation that's been scaled. index/128 is another scaling.
-      leds[i] = ColorFromPalette(currentPalette, index, iLeds, NOBLEND);        // With that value, look up the 8 bit colour palette value and assign it to the current LED. 
-    }    
   }
 
 }
@@ -342,9 +289,34 @@ void vShowLedBarFullUV(byte bSpectrumValue, int iLedStart, int iLedCount, int iH
   
 }
 
-void vShowOnDisplay(byte bVolValL0, byte bVolValR0, byte bVolValL1, byte bVolValR1, 
-                    byte bVolValL2, byte bVolValR2, byte bVolValL3, byte bVolValR3,
-                    byte bVolValL4, byte bVolValR4, byte bVolValL5, byte bVolValR5) {
+void vShowOnDisplayVol(byte bVolumeL, byte bVolumeR) {
+
+/*                      
+ *  this function will show the spectrum on the display
+ */
+
+  u8g2.setFont(u8g2_font_4x6_mf);
+  u8g2.firstPage();
+  
+  do {
+
+    bDisplayBarXPosition = 1;
+    bDisplayBarLength = map(bVolumeL, 0, 255, 0, 60);
+    u8g2.drawBox(bDisplayBarXPosition + 60 - bDisplayBarLength, 2, bDisplayBarLength, 20);
+    u8g2.drawStr(bDisplayBarXPosition + 24, dDisplayTextYPosition, "LEFT");
+
+    bDisplayBarXPosition = 65;
+    bDisplayBarLength = map(bVolumeR, 0, 255, 0, 60);
+    u8g2.drawBox(bDisplayBarXPosition, 2, bDisplayBarLength, 20); 
+    u8g2.drawStr(bDisplayBarXPosition + 21, dDisplayTextYPosition, "RIGHT");
+    
+  } while ( u8g2.nextPage() );
+  
+}
+
+void vShowOnDisplayUV(byte bVolValL0, byte bVolValR0, byte bVolValL1, byte bVolValR1, 
+                      byte bVolValL2, byte bVolValR2, byte bVolValL3, byte bVolValR3,
+                      byte bVolValL4, byte bVolValR4, byte bVolValL5, byte bVolValR5) {
 
 /*                      
  *  this function will show the spectrum on the display
@@ -358,74 +330,62 @@ void vShowOnDisplay(byte bVolValL0, byte bVolValR0, byte bVolValL1, byte bVolVal
     bDisplayBarXPosition = 1;
     bDisplayBarLength = map(bVolValL0, 0, 255, 0, dDisplayBarMaxLength);
     u8g2.drawBox(bDisplayBarXPosition, dDisplayBarYPosition - bDisplayBarLength, dDisplayBarWidth, bDisplayBarLength);
-    u8g2.setCursor(bDisplayBarXPosition + 1, dDisplayTextYPosition);
-    u8g2.print("16");
+    u8g2.drawStr(bDisplayBarXPosition + 1, dDisplayTextYPosition, "16");
 
     bDisplayBarXPosition = bDisplayBarXPosition + dDisplayBarWidth + dDisplayBarWidthOffset;
     bDisplayBarLength = map(bVolValL1, 0, 255, 0, dDisplayBarMaxLength);
     u8g2.drawBox(bDisplayBarXPosition, dDisplayBarYPosition - bDisplayBarLength, dDisplayBarWidth, bDisplayBarLength); 
-    u8g2.setCursor(bDisplayBarXPosition + 1, dDisplayTextYPosition);
-    u8g2.print("40");
+    u8g2.drawStr(bDisplayBarXPosition + 1, dDisplayTextYPosition, "40");
     
     bDisplayBarXPosition = bDisplayBarXPosition + dDisplayBarWidth + dDisplayBarWidthOffset;
     bDisplayBarLength = map(bVolValL2, 0, 255, 0, dDisplayBarMaxLength);
     u8g2.drawBox(bDisplayBarXPosition, dDisplayBarYPosition - bDisplayBarLength, dDisplayBarWidth, bDisplayBarLength); 
-    u8g2.setCursor(bDisplayBarXPosition + 0, dDisplayTextYPosition);
-    u8g2.print("1k");
+    u8g2.drawStr(bDisplayBarXPosition + 0, dDisplayTextYPosition, "1k");
         
     bDisplayBarXPosition = bDisplayBarXPosition + dDisplayBarWidth + dDisplayBarWidthOffset;
     bDisplayBarLength = map(bVolValL3, 0, 255, 0, dDisplayBarMaxLength);
     u8g2.drawBox(bDisplayBarXPosition, dDisplayBarYPosition - bDisplayBarLength, dDisplayBarWidth, bDisplayBarLength); 
-    u8g2.setCursor(bDisplayBarXPosition + 0, dDisplayTextYPosition);
-    u8g2.print("2k");
+    u8g2.drawStr(bDisplayBarXPosition + 0, dDisplayTextYPosition, "2k");
         
     bDisplayBarXPosition = bDisplayBarXPosition + dDisplayBarWidth + dDisplayBarWidthOffset;
     bDisplayBarLength = map(bVolValL4, 0, 255, 0, dDisplayBarMaxLength);
     u8g2.drawBox(bDisplayBarXPosition, dDisplayBarYPosition - bDisplayBarLength, dDisplayBarWidth, bDisplayBarLength); 
-    u8g2.setCursor(bDisplayBarXPosition - 1, dDisplayTextYPosition);
-    u8g2.print("6k");
+    u8g2.drawStr(bDisplayBarXPosition - 1, dDisplayTextYPosition, "6k");
         
     bDisplayBarXPosition = bDisplayBarXPosition + dDisplayBarWidth + dDisplayBarWidthOffset;
     bDisplayBarLength = map(bVolValL5, 0, 255, 0, dDisplayBarMaxLength);
     u8g2.drawBox(bDisplayBarXPosition, dDisplayBarYPosition - bDisplayBarLength, dDisplayBarWidth, bDisplayBarLength); 
-    u8g2.setCursor(bDisplayBarXPosition - 2, dDisplayTextYPosition);
-    u8g2.print("16k");
+    u8g2.drawStr(bDisplayBarXPosition - 2, dDisplayTextYPosition, "16k");
         
     bDisplayBarXPosition = 64;
     bDisplayBarLength = map(bVolValR5, 0, 255, 0, dDisplayBarMaxLength); 
     u8g2.drawBox(bDisplayBarXPosition, dDisplayBarYPosition - bDisplayBarLength, dDisplayBarWidth, bDisplayBarLength);
-    u8g2.setCursor(bDisplayBarXPosition - 2, dDisplayTextYPosition);
-    u8g2.print("16k");
+    u8g2.drawStr(bDisplayBarXPosition - 2, dDisplayTextYPosition, "16k");
         
     bDisplayBarXPosition = bDisplayBarXPosition + dDisplayBarWidth + dDisplayBarWidthOffset;
     bDisplayBarLength = map(bVolValR4, 0, 255, 0, dDisplayBarMaxLength);
     u8g2.drawBox(bDisplayBarXPosition, dDisplayBarYPosition - bDisplayBarLength, dDisplayBarWidth, bDisplayBarLength);
-    u8g2.setCursor(bDisplayBarXPosition + 1, dDisplayTextYPosition);
-    u8g2.print("6k");
+    u8g2.drawStr(bDisplayBarXPosition + 1, dDisplayTextYPosition, "6k");
         
     bDisplayBarXPosition = bDisplayBarXPosition + dDisplayBarWidth + dDisplayBarWidthOffset;
     bDisplayBarLength = map(bVolValR3, 0, 255, 0, dDisplayBarMaxLength); 
     u8g2.drawBox(bDisplayBarXPosition, dDisplayBarYPosition - bDisplayBarLength, dDisplayBarWidth, bDisplayBarLength);
-    u8g2.setCursor(bDisplayBarXPosition + 1, dDisplayTextYPosition);
-    u8g2.print("2k");
+    u8g2.drawStr(bDisplayBarXPosition + 1, dDisplayTextYPosition, "2k");
         
     bDisplayBarXPosition = bDisplayBarXPosition + dDisplayBarWidth + dDisplayBarWidthOffset;
     bDisplayBarLength = map(bVolValR2, 0, 255, 0, dDisplayBarMaxLength); 
     u8g2.drawBox(bDisplayBarXPosition, dDisplayBarYPosition - bDisplayBarLength, dDisplayBarWidth, bDisplayBarLength);
-    u8g2.setCursor(bDisplayBarXPosition + 0, dDisplayTextYPosition);
-    u8g2.print("1k");
+    u8g2.drawStr(bDisplayBarXPosition + 0, dDisplayTextYPosition, "1k");
 
     bDisplayBarXPosition = bDisplayBarXPosition + dDisplayBarWidth + dDisplayBarWidthOffset;
     bDisplayBarLength = map(bVolValR1, 0, 255, 0, dDisplayBarMaxLength); 
     u8g2.drawBox(bDisplayBarXPosition, dDisplayBarYPosition - bDisplayBarLength, dDisplayBarWidth, bDisplayBarLength);
-    u8g2.setCursor(bDisplayBarXPosition + 0, dDisplayTextYPosition);
-    u8g2.print("40");
+    u8g2.drawStr(bDisplayBarXPosition + 0, dDisplayTextYPosition, "40");
         
     bDisplayBarXPosition = bDisplayBarXPosition + dDisplayBarWidth + dDisplayBarWidthOffset;
     bDisplayBarLength = map(bVolValR0, 0, 255, 0, dDisplayBarMaxLength); 
     u8g2.drawBox(bDisplayBarXPosition, dDisplayBarYPosition - bDisplayBarLength, dDisplayBarWidth, bDisplayBarLength);
-    u8g2.setCursor(bDisplayBarXPosition + 1, dDisplayTextYPosition);
-    u8g2.print("16");
+    u8g2.drawStr(bDisplayBarXPosition + 1, dDisplayTextYPosition, "16");
     
   } while ( u8g2.nextPage() );
   
